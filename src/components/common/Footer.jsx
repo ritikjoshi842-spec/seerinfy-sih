@@ -5,39 +5,39 @@ import { Button } from './Button';
 
 export function Footer() {
   return (
-    <footer style={{ backgroundColor: '#285943' }} className="text-white pt-16 pb-8">
-      <div className="content-wrap">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-white/10">
+    <footer style={{ backgroundColor: '#1A1C1B' }} className="text-white">
+      <div className="content-wrap" style={{ paddingTop: '96px', paddingBottom: '48px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 pb-20 border-b border-white/10">
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <Leaf size={18} color="white" />
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-[#2C4233] rounded-[12px] flex items-center justify-center">
+                <Leaf size={20} color="#E6EBE7" />
               </div>
-              <span className="font-bold text-xl" style={{ fontFamily: 'Poppins' }}>Sereenify</span>
+              <span className="font-semibold text-2xl tracking-tight" style={{ fontFamily: 'Poppins' }}>Sereenify</span>
             </div>
-            <p className="text-white/70 text-sm leading-relaxed max-w-xs">
+            <p className="text-white/60 text-base leading-relaxed max-w-sm" style={{ lineHeight: 1.8 }}>
               Empowering minds with compassion and technology. Gentle cognitive care for everyone.
             </p>
-            <div className="mt-6 flex items-center gap-3">
-              <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
-                <Mail size={14} />
+            <div className="mt-10 flex items-center gap-4">
+              <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center">
+                <Mail size={16} className="text-white/70" />
               </div>
-              <span className="text-white/70 text-sm">hello@sereenify.app</span>
+              <span className="text-white/80 text-sm font-medium">hello@sereenify.app</span>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold text-sm text-white/90 mb-4 uppercase tracking-wider" style={{ fontFamily: 'Poppins' }}>
+            <h4 className="font-semibold text-sm text-white/90 mb-8 uppercase tracking-widest text-[#738A7A]" style={{ fontFamily: 'Inter' }}>
               Quick Links
             </h4>
-            <ul className="flex flex-col gap-2 list-none">
-              {['About Dyslexia', 'How it Works', 'Games', 'FAQ', 'Contact Us'].map(item => (
+            <ul className="flex flex-col gap-5 list-none">
+              {['About Alzheimer\'s', 'How it Works', 'Games', 'FAQ', 'Contact Us'].map(item => (
                 <li key={item}>
                   <Link
                     to="#"
-                    className="text-white/60 hover:text-white text-sm no-underline transition-colors duration-200"
+                    className="text-white/50 hover:text-white text-sm no-underline transition-colors duration-300"
                   >
                     {item}
                   </Link>
@@ -48,25 +48,25 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="font-semibold text-sm text-white/90 mb-4 uppercase tracking-wider" style={{ fontFamily: 'Poppins' }}>
+            <h4 className="font-semibold text-sm text-white/90 mb-8 uppercase tracking-widest text-[#738A7A]" style={{ fontFamily: 'Inter' }}>
               Need Support?
             </h4>
-            <p className="text-white/60 text-sm mb-4">We're here to help you</p>
+            <p className="text-white/50 text-sm mb-6" style={{ lineHeight: 1.6 }}>We're here to help you</p>
             <Button
-              variant="accent"
-              size="sm"
-              className="gap-3"
+              variant="outline"
+              size="md"
+              className="gap-3 w-full border-white/20 text-white hover:bg-white/5"
             >
-              <Phone size={14} />
+              <Phone size={16} />
               Contact Us
             </Button>
 
-            <div className="mt-6">
-              <h4 className="font-semibold text-sm text-white/90 mb-3 uppercase tracking-wider" style={{ fontFamily: 'Poppins' }}>Resources</h4>
-              <ul className="flex flex-col gap-2 list-none">
+            <div className="mt-12">
+              <h4 className="font-semibold text-sm text-white/90 mb-6 uppercase tracking-widest text-[#738A7A]" style={{ fontFamily: 'Inter' }}>Resources</h4>
+              <ul className="flex flex-col gap-4 list-none">
                 {['Blog', 'Research', 'Caregivers Guide'].map(item => (
                   <li key={item}>
-                    <Link to="#" className="text-white/60 hover:text-white text-sm no-underline transition-colors duration-200">{item}</Link>
+                    <Link to="#" className="text-white/50 hover:text-white text-sm no-underline transition-colors duration-300">{item}</Link>
                   </li>
                 ))}
               </ul>
@@ -74,13 +74,13 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-white/40 text-xs">
+        <div className="pt-10 flex flex-col sm:flex-row justify-between items-center gap-6">
+          <p className="text-white/30 text-sm">
             © 2026 Sereenify. All rights reserved. Built with compassion.
           </p>
-          <div className="flex gap-4">
+          <div className="flex gap-8">
             {['Privacy Policy', 'Terms of Service'].map(item => (
-              <Link key={item} to="#" className="text-white/40 hover:text-white/70 text-xs no-underline transition-colors duration-200">
+              <Link key={item} to="#" className="text-white/30 hover:text-white/60 text-sm no-underline transition-colors duration-300">
                 {item}
               </Link>
             ))}

@@ -31,14 +31,14 @@ export function ProgressRing({ percent = 0, size = 120, strokeWidth = 10, color 
           style={{ transition: 'stroke-dashoffset 1s ease' }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
         <span className="font-bold text-[#202622]" style={{ fontFamily: 'Poppins', fontSize: size * 0.22 }}>
           {percent}%
         </span>
-        {label && <span className="text-[#5B6660] font-medium" style={{ fontSize: size * 0.1 }}>{label}</span>}
+        {label && <span className="text-[#5B6660] font-medium" style={{ fontSize: size * 0.11 }}>{label}</span>}
       </div>
       {sublabel && (
-        <p className="text-[#5B6660] text-xs mt-1 text-center">{sublabel}</p>
+        <p className="text-[#5B6660] text-xs mt-2 text-center">{sublabel}</p>
       )}
     </div>
   );

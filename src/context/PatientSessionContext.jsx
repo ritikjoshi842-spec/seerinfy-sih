@@ -4,7 +4,7 @@ const PatientSessionContext = createContext(null);
 
 export function PatientSessionProvider({ children }) {
   const [session, setSession] = useState({
-    track: null,         // 'alzheimers' | 'dementia' | 'dyslexia'
+    track: null,         // 'alzheimers' | 'dementia'
     profile: null,       // { name, age, caregiverName, language }
     currentImage: null,  // { url, caption, year, location }
     response: '',        // patient's latest text/voice response

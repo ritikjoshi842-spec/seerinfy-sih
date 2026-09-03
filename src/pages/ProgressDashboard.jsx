@@ -12,20 +12,20 @@ import { ProgressRing } from '../components/common/ProgressRing';
 import { mockScoringService } from '../services/mockScoringService';
 
 const BADGES = [
-  { icon: <Star size={20} fill="#D6A84F" color="#D6A84F" />, label: '5-Day Streak', desc: 'Played 5 days in a row!', earned: true },
-  { icon: <Zap size={20} fill="#5B3FA0" color="#5B3FA0" />, label: 'Quick Thinker', desc: 'Responded in under 30 seconds.', earned: true },
-  { icon: <Flame size={20} fill="#C7654A" color="#C7654A" />, label: 'On Fire!', desc: 'Scored 80%+ three sessions in a row.', earned: false },
-  { icon: <Award size={20} fill="#285943" color="#285943" />, label: 'Memory Champ', desc: '10 sessions completed.', earned: false },
+  { icon: <Star size={24} fill="#B3925B" color="#B3925B" />, label: '5-Day Streak', desc: 'Played 5 days in a row!', earned: true },
+  { icon: <Zap size={24} fill="#738A7A" color="#738A7A" />, label: 'Quick Thinker', desc: 'Responded in under 30 seconds.', earned: true },
+  { icon: <Flame size={24} fill="#4A6B53" color="#4A6B53" />, label: 'On Fire!', desc: 'Scored 80%+ three sessions in a row.', earned: false },
+  { icon: <Award size={24} fill="#2C4233" color="#2C4233" />, label: 'Memory Champ', desc: '10 sessions completed.', earned: false },
 ];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-[#E4E0D3] rounded-xl p-3 shadow-card text-sm">
-        <p className="font-semibold text-[#202622] mb-1" style={{ fontFamily: 'Poppins' }}>{label}</p>
+      <div className="bg-[#FDFBF7] border border-[#EAE8E3] rounded-xl p-5 shadow-[0_8px_24px_rgba(26,28,27,0.06)] text-sm">
+        <p className="font-semibold text-[#1A1C1B] mb-2" style={{ fontFamily: 'Poppins' }}>{label}</p>
         {payload.map(p => (
-          <p key={p.dataKey} style={{ color: p.color }}>
-            {p.name}: <strong>{p.value}%</strong>
+          <p key={p.dataKey} style={{ color: p.color }} className="mb-1">
+            {p.name}: <strong className="font-bold">{p.value}%</strong>
           </p>
         ))}
       </div>
@@ -48,42 +48,43 @@ export function ProgressDashboard() {
 
   return (
     <PageShell>
-      <div className="min-h-[calc(100vh-64px)] py-12" style={{ background: '#FAF7EF' }}>
-        <div className="content-wrap space-y-10">
+      <div className="min-h-[calc(100vh-80px)] py-16 lg:py-24" style={{ background: '#FDFBF7' }}>
+        <div className="content-wrap max-w-7xl space-y-20">
 
           {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 animate-fadeInUp">
             <div>
               <SectionHeading
-                label="PROGRESS"
+                label="PROGRESS DASHBOARD"
                 title="Your Growth Journey"
-                subtitle="Every session brings you closer. Here's how you're doing."
+                subtitle="Every session brings you closer. Here's how you're doing over time."
                 align="left"
               />
             </div>
-            <Button variant="accent" size="md" onClick={() => navigate('/session')} iconRight={<ArrowRight size={16} />}>
+            <Button variant="primary" size="lg" onClick={() => navigate('/session')} iconRight={<ArrowRight size={20} />}>
               Start New Session
             </Button>
           </div>
 
           {/* Stats cards */}
           {monthly && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-fadeInUp delay-100">
               {[
-                { label: 'Sessions', value: monthly.sessionsCompleted, icon: <Calendar size={20} />, color: '#285943', bg: '#DCE8D8', unit: '' },
-                { label: 'Streak', value: monthly.streak, icon: <Flame size={20} />, color: '#C7654A', bg: '#FEF0E7', unit: ' days' },
-                { label: 'Focus ↑', value: `+${monthly.focusChange}`, icon: <TrendingUp size={20} />, color: '#4C8B5D', bg: '#DCE8D8', unit: '%' },
-                { label: 'Memory ↑', value: `+${monthly.memoryChange}`, icon: <Star size={20} />, color: '#D6A84F', bg: '#FFF5DC', unit: '%' },
-              ].map(stat => (
-                <Card key={stat.label} className="p-5 flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0" style={{ background: stat.bg, color: stat.color }}>
-                    {React.cloneElement(stat.icon, { color: stat.color })}
+                { label: 'Sessions', value: monthly.sessionsCompleted, icon: <Calendar size={24} />, color: '#4A6B53', bg: '#F3F6F4', unit: '' },
+                { label: 'Streak', value: monthly.streak, icon: <Flame size={24} />, color: '#738A7A', bg: '#F0F4F1', unit: ' days' },
+                { label: 'Focus', value: `+${monthly.focusChange}`, icon: <TrendingUp size={24} />, color: '#2C4233', bg: '#E6EBE7', unit: '%' },
+                { label: 'Memory', value: `+${monthly.memoryChange}`, icon: <Star size={24} />, color: '#B3925B', bg: '#FDFBF7', unit: '%' },
+              ].map((stat, i) => (
+                <Card key={stat.label} className="p-8 flex items-center gap-6 border-none shadow-[0_8px_32px_rgba(26,28,27,0.03)] bg-white"
+                  style={{ animationDelay: `${i * 0.1}s` }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-[#EAE8E3]" style={{ background: stat.bg, color: stat.color }}>
+                    {stat.icon}
                   </div>
                   <div>
-                    <p className="font-bold text-[#202622] text-2xl leading-none" style={{ fontFamily: 'Poppins' }}>
-                      {stat.value}{stat.unit}
+                    <p className="font-bold text-[#1A1C1B] text-3xl leading-none tracking-tight" style={{ fontFamily: 'Poppins' }}>
+                      {stat.value}<span className="text-xl font-medium">{stat.unit}</span>
                     </p>
-                    <p className="text-[#5B6660] text-xs mt-1">{stat.label}</p>
+                    <p className="text-[#767A77] text-sm mt-2 font-medium">{stat.label}</p>
                   </div>
                 </Card>
               ))}
@@ -91,68 +92,74 @@ export function ProgressDashboard() {
           )}
 
           {/* Chart + rings row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-12 animate-fadeInUp delay-200">
             {/* Area chart */}
-            <Card className="lg:col-span-2 p-6">
-              <h3 className="font-bold text-[#202622] mb-6" style={{ fontFamily: 'Poppins', fontSize: '1.1rem' }}>
+            <Card className="xl:col-span-2 p-10 lg:p-12 border-none shadow-[0_16px_40px_rgba(26,28,27,0.03)] bg-white">
+              <h3 className="font-bold text-[#1A1C1B] text-2xl mb-10" style={{ fontFamily: 'Poppins' }}>
                 Weekly Performance
               </h3>
               {weeklyData.length > 0 && (
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={weeklyData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="focusGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#285943" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#285943" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="memoryGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#5B3FA0" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#5B3FA0" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E4E0D3" />
-                    <XAxis dataKey="day" tick={{ fill: '#5B6660', fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis domain={[40, 100]} tick={{ fill: '#5B6660', fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: 12, color: '#5B6660' }} />
-                    <Area type="monotone" dataKey="focus" name="Focus" stroke="#285943" strokeWidth={2.5} fill="url(#focusGrad)" dot={{ fill: '#285943', r: 4 }} />
-                    <Area type="monotone" dataKey="memory" name="Memory" stroke="#5B3FA0" strokeWidth={2.5} fill="url(#memoryGrad)" dot={{ fill: '#5B3FA0', r: 4 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <div style={{ width: '100%', height: 320 }}>
+                  <ResponsiveContainer>
+                    <AreaChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="focusGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#4A6B53" stopOpacity={0.15} />
+                          <stop offset="95%" stopColor="#4A6B53" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="memoryGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#738A7A" stopOpacity={0.15} />
+                          <stop offset="95%" stopColor="#738A7A" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" stroke="#EAE8E3" vertical={false} />
+                      <XAxis dataKey="day" tick={{ fill: '#767A77', fontSize: 13, fontWeight: 500 }} axisLine={false} tickLine={false} dy={16} />
+                      <YAxis domain={[40, 100]} tick={{ fill: '#767A77', fontSize: 13, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-16} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend wrapperStyle={{ fontSize: 14, color: '#767A77', fontWeight: 500, paddingTop: '24px' }} iconType="circle" />
+                      <Area type="monotone" dataKey="focus" name="Focus" stroke="#4A6B53" strokeWidth={3} fill="url(#focusGrad)" dot={{ fill: '#FDFBF7', stroke: '#4A6B53', strokeWidth: 2, r: 5 }} activeDot={{ r: 7, fill: '#4A6B53', stroke: '#FDFBF7' }} />
+                      <Area type="monotone" dataKey="memory" name="Memory" stroke="#738A7A" strokeWidth={3} fill="url(#memoryGrad)" dot={{ fill: '#FDFBF7', stroke: '#738A7A', strokeWidth: 2, r: 5 }} activeDot={{ r: 7, fill: '#738A7A', stroke: '#FDFBF7' }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               )}
             </Card>
 
             {/* Progress rings */}
-            <Card className="p-6 flex flex-col items-center justify-center gap-6">
-              <h3 className="font-bold text-[#202622] self-start" style={{ fontFamily: 'Poppins', fontSize: '1.1rem' }}>
+            <Card className="p-10 lg:p-12 flex flex-col items-center justify-center gap-12 border border-[#EAE8E3] bg-[#FDFBF7] shadow-none">
+              <h3 className="font-bold text-[#1A1C1B] text-2xl self-start w-full" style={{ fontFamily: 'Poppins' }}>
                 This Month
               </h3>
-              <ProgressRing percent={78} size={120} strokeWidth={11} color="#285943" label="Focus" sublabel="+18% vs last month" />
-              <ProgressRing percent={65} size={100} strokeWidth={10} color="#5B3FA0" label="Memory" sublabel="+12% vs last month" />
+              <div className="flex flex-col gap-10 items-center w-full">
+                <ProgressRing percent={78} size={160} strokeWidth={12} color="#4A6B53" label="Focus" sublabel="+18% vs last month" />
+                <div className="w-full h-px bg-[#EAE8E3]" />
+                <ProgressRing percent={65} size={160} strokeWidth={12} color="#738A7A" label="Memory" sublabel="+12% vs last month" />
+              </div>
             </Card>
           </div>
 
           {/* Badges */}
-          <div>
-            <h3 className="font-bold text-[#202622] mb-5" style={{ fontFamily: 'Poppins', fontSize: '1.1rem' }}>
+          <div className="animate-fadeInUp delay-300">
+            <h3 className="font-bold text-[#1A1C1B] text-2xl mb-8" style={{ fontFamily: 'Poppins' }}>
               Achievements
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {BADGES.map(badge => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {BADGES.map((badge, i) => (
                 <Card
                   key={badge.label}
-                  className={`p-5 flex flex-col items-center text-center gap-3 ${!badge.earned ? 'opacity-50 grayscale' : ''}`}
+                  className={`p-8 flex flex-col items-center text-center gap-5 border-none shadow-[0_8px_24px_rgba(26,28,27,0.03)] bg-white
+                    ${!badge.earned ? 'opacity-60 grayscale' : ''}`}
                 >
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ background: badge.earned ? '#FFF5DC' : '#F5F5F5' }}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center border border-[#EAE8E3]"
+                    style={{ background: badge.earned ? '#FDFBF7' : '#F5F3EC' }}>
                     {badge.icon}
                   </div>
                   <div>
-                    <p className="font-bold text-[#202622] text-sm" style={{ fontFamily: 'Poppins' }}>{badge.label}</p>
-                    <p className="text-[#5B6660] text-xs mt-1 leading-snug">{badge.desc}</p>
+                    <p className="font-bold text-[#1A1C1B] text-lg" style={{ fontFamily: 'Poppins' }}>{badge.label}</p>
+                    <p className="text-[#767A77] text-sm mt-2 leading-relaxed">{badge.desc}</p>
                   </div>
                   {!badge.earned && (
-                    <span className="text-[10px] font-semibold text-[#5B6660] bg-[#E4E0D3] px-2 py-0.5 rounded-full">Locked</span>
+                    <span className="text-[11px] font-bold tracking-wider text-[#A3A8A5] uppercase mt-2">Locked</span>
                   )}
                 </Card>
               ))}
@@ -160,47 +167,49 @@ export function ProgressDashboard() {
           </div>
 
           {/* Session history */}
-          <div>
-            <h3 className="font-bold text-[#202622] mb-5" style={{ fontFamily: 'Poppins', fontSize: '1.1rem' }}>
+          <div className="animate-fadeInUp delay-400">
+            <h3 className="font-bold text-[#1A1C1B] text-2xl mb-8" style={{ fontFamily: 'Poppins' }}>
               Session History
             </h3>
-            <Card padding={false} className="overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr style={{ background: '#FAF7EF' }}>
-                    {['Date', 'Duration', 'Images', 'Focus Score', 'Track'].map(h => (
-                      <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-[#5B6660] uppercase tracking-wider">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((row, i) => (
-                    <tr key={row.id} className={`border-t border-[#E4E0D3] hover:bg-[#FAF7EF] transition-colors`}>
-                      <td className="px-5 py-4 text-[#202622] text-sm font-medium">{row.date}</td>
-                      <td className="px-5 py-4 text-[#5B6660] text-sm flex items-center gap-1">
-                        <Clock size={12} /> {row.duration}
-                      </td>
-                      <td className="px-5 py-4 text-[#5B6660] text-sm">{row.imageCount} images</td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 h-1.5 rounded-full bg-[#E4E0D3]">
-                            <div className="h-1.5 rounded-full" style={{ width: `${row.focusScore}%`, background: '#4C8B5D' }} />
-                          </div>
-                          <span className="text-[#202622] text-sm font-semibold">{row.focusScore}%</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                          style={{ background: '#DCE8D8', color: '#285943' }}>
-                          {row.track}
-                        </span>
-                      </td>
+            <Card padding={false} className="overflow-hidden border border-[#EAE8E3] shadow-none bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[800px]">
+                  <thead>
+                    <tr style={{ background: '#FDFBF7' }} className="border-b border-[#EAE8E3]">
+                      {['Date', 'Duration', 'Images', 'Focus Score', 'Track'].map(h => (
+                        <th key={h} className="text-left px-8 py-5 text-sm font-bold text-[#767A77] uppercase tracking-wider">
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {history.map((row, i) => (
+                      <tr key={row.id} className={`border-b border-[#EAE8E3] last:border-0 hover:bg-[#FDFBF7] transition-colors`}>
+                        <td className="px-8 py-6 text-[#1A1C1B] text-base font-semibold">{row.date}</td>
+                        <td className="px-8 py-6 text-[#767A77] text-base font-medium flex items-center gap-2">
+                          <Clock size={16} className="text-[#A3A8A5]" /> {row.duration}
+                        </td>
+                        <td className="px-8 py-6 text-[#767A77] text-base font-medium">{row.imageCount} images</td>
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-32 h-2 rounded-full bg-[#EAE8E3]">
+                              <div className="h-2 rounded-full" style={{ width: `${row.focusScore}%`, background: '#4A6B53' }} />
+                            </div>
+                            <span className="text-[#1A1C1B] text-base font-bold">{row.focusScore}%</span>
+                          </div>
+                        </td>
+                        <td className="px-8 py-6">
+                          <span className="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
+                            style={{ background: '#F3F6F4', color: '#4A6B53', border: '1px solid #EAE8E3' }}>
+                            {row.track}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Card>
           </div>
 

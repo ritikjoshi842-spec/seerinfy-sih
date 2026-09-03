@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Image, Gamepad2, User, TrendingUp, ArrowRight,
-  Play, ChevronRight, Star, Shield
+  Play, ChevronRight, Star, Sparkles
 } from 'lucide-react';
 import { PageShell } from '../components/common/PageShell';
 import { Button } from '../components/common/Button';
@@ -13,41 +13,41 @@ import { ProgressRing } from '../components/common/ProgressRing';
 // ─── Feature Tiles Data ──────────────────────────────────────────────────────
 const FEATURES = [
   {
-    icon: <Image size={28} strokeWidth={2} />,
-    title: 'Image-based Therapy',
-    desc: 'Visuals that help the brain understand better.',
-    bg: '#DCE8D8',
-    fg: '#285943',
+    icon: <Image size={32} strokeWidth={1.5} />,
+    title: 'Visual-Based Therapy',
+    desc: 'High-res, photo-realistic imagery that helps the brain understand better.',
+    bg: '#F3F6F4',
+    fg: '#4A6B53',
   },
   {
-    icon: <Gamepad2 size={28} strokeWidth={2} />,
-    title: 'Cognitive Games',
-    desc: 'Fun games that improve focus, memory & thinking.',
-    bg: '#E8E0F0',
-    fg: '#5B3FA0',
+    icon: <Gamepad2 size={32} strokeWidth={1.5} />,
+    title: 'Cognitive Game-Play',
+    desc: 'Fun games that improve memory, focus, and sequential thinking.',
+    bg: '#F5F3EC',
+    fg: '#738A7A',
   },
   {
-    icon: <User size={28} strokeWidth={2} />,
-    title: 'Personalized for You',
-    desc: 'Therapy that adapts to your pace and needs.',
-    bg: '#FEF0E7',
-    fg: '#C7654A',
+    icon: <User size={32} strokeWidth={1.5} />,
+    title: 'Adaptive for You',
+    desc: 'Therapy that automatically adapts to your unique pace and needs.',
+    bg: '#F0F4F1',
+    fg: '#586B5D',
   },
   {
-    icon: <TrendingUp size={28} strokeWidth={2} />,
-    title: 'Track Progress',
-    desc: 'See your improvement over time.',
-    bg: '#FFF5DC',
-    fg: '#D6A84F',
+    icon: <TrendingUp size={32} strokeWidth={1.5} />,
+    title: 'Intuitive Tracking',
+    desc: 'See your improvement over time with clear, simple progress charts.',
+    bg: '#FDFBF7',
+    fg: '#B3925B',
   },
 ];
 
 // ─── How It Works Steps ───────────────────────────────────────────────────────
 const STEPS = [
-  { num: '1', icon: <User size={28} color="white" />, label: 'Create Profile', desc: 'Tell us a bit about yourself so we can personalize your experience.', bg: '#285943' },
-  { num: '2', icon: <Image size={28} color="white" />, label: 'Start Therapy', desc: 'Explore image-based activities and games, designed for you.', bg: '#4C8B5D' },
-  { num: '3', icon: <Gamepad2 size={28} color="white" />, label: 'Play & Improve', desc: 'Play engaging games that build cognitive skills step by step.', bg: '#C7654A' },
-  { num: '4', icon: <TrendingUp size={28} color="white" />, label: 'Track Progress', desc: 'See your improvement and celebrate every small win!', bg: '#D6A84F' },
+  { num: '1', icon: <User size={32} color="#1A1C1B" strokeWidth={1.5} />, label: 'Create Profile', desc: 'Tell us a bit about yourself so we can personalize your experience.', bg: '#E6EBE7' },
+  { num: '2', icon: <Image size={32} color="#1A1C1B" strokeWidth={1.5} />, label: 'Start Therapy', desc: 'Explore image-based activities and games, designed specifically for you.', bg: '#F3F6F4' },
+  { num: '3', icon: <Gamepad2 size={32} color="#1A1C1B" strokeWidth={1.5} />, label: 'Play & Improve', desc: 'Engage with challenges that build cognitive skills step by step.', bg: '#F0F4F1' },
+  { num: '4', icon: <TrendingUp size={32} color="#1A1C1B" strokeWidth={1.5} />, label: 'Track Progress', desc: 'See your improvement visually and celebrate every small win!', bg: '#F5F3EC' },
 ];
 
 // ─── Game Cards Data ──────────────────────────────────────────────────────────
@@ -63,87 +63,65 @@ const GAMES = [
 function Hero() {
   const navigate = useNavigate();
   return (
-    <section
-      className="relative overflow-hidden pt-12 pb-0"
-      style={{ background: 'linear-gradient(160deg, #FAF7EF 0%, #f0ece0 100%)' }}
+    <section 
+      className="relative overflow-hidden pt-32 pb-12" 
+      style={{ 
+        backgroundColor: '#FDFBF7',
+        backgroundImage: 'url(/assets/bg-image.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
     >
-      {/* Decorative bg circles */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full opacity-10 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #285943 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-5 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #C7654A 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }} />
+      {/* Extremely subtle background gradient, NO massive circles */}
+      <div className="absolute top-0 left-0 w-full h-[800px] pointer-events-none"
+        style={{ background: 'linear-gradient(180deg, rgba(243,246,244,0.5) 0%, rgba(253,251,247,0) 100%)' }} />
 
-      <div className="content-wrap grid grid-cols-1 lg:grid-cols-2 gap-8 items-end">
-        {/* Left: copy */}
-        <div className="py-12 lg:py-20 animate-fadeInUp">
-          <div className="inline-flex items-center gap-2 bg-[#DCE8D8] text-[#285943] text-xs font-semibold px-4 py-2 rounded-full mb-6">
-            <Shield size={12} />
-            Designed for people with dyslexia of all ages
-          </div>
+      <div className="content-wrap relative z-10 flex flex-col items-center text-center mt-48 lg:mt-[20rem]">
 
-          <h1
-            className="font-bold text-[#202622] mb-4"
-            style={{
-              fontFamily: 'Poppins',
-              fontSize: 'clamp(36px, 5vw, 56px)',
-              lineHeight: 1.1,
-            }}
+        <h1
+          className="font-bold text-[#1A1C1B] mb-8 animate-fadeInUp delay-100"
+          style={{
+            fontFamily: 'Poppins',
+            fontSize: 'clamp(42px, 6vw, 72px)',
+            lineHeight: 1.1,
+            letterSpacing: '-0.03em',
+            maxWidth: '900px'
+          }}
+        >
+          Therapy that
+          <br />
+          understands <span className="text-[#4A6B53]">you.</span>
+        </h1>
+
+        <p className="animate-fadeInUp delay-200" style={{
+          fontSize: '1.25rem',
+          color: '#767A77',
+          lineHeight: 1.8,
+          maxWidth: '680px',
+          marginBottom: '56px',
+        }}>
+          Sereenify uses image-based cognitive games to support Alzheimer's through
+          engaging, personalized, and visually gentle therapy.
+        </p>
+
+        <div className="flex flex-wrap items-center justify-center gap-6 animate-fadeInUp delay-300 mt-12 lg:mt-16">
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={() => navigate('/onboarding')}
+            iconRight={<ArrowRight size={20} />}
           >
-            Therapy that
-            <br />
-            understands
-            <br />
-            <span style={{ color: '#285943', textDecoration: 'underline', textDecorationColor: '#D6A84F', textDecorationThickness: '4px', textUnderlineOffset: '6px' }}>
-              you.
-            </span>
-          </h1>
-
-          <p style={{ fontSize: '1.05rem', color: '#5B6660', lineHeight: 1.7, maxWidth: '440px', marginTop: '28px', marginBottom: '36px' }}>
-            Sereenify uses image-based cognitive games to support dyslexia through
-            engaging and personalized therapy.
-          </p>
-
-          <div className="flex flex-wrap gap-4">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => navigate('/onboarding')}
-              iconRight={<ArrowRight size={18} />}
-            >
-              Start Your Journey
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-              icon={<Play size={16} fill="#285943" />}
-            >
-              Learn More
-            </Button>
-          </div>
-        </div>
-
-        {/* Right: mascot */}
-        <div className="relative flex items-end justify-center lg:justify-end animate-fadeInUp delay-200">
-          {/* Speech bubble */}
-          <div
-            className="absolute top-8 right-4 lg:right-16 bg-white text-[#202622] text-sm font-semibold px-4 py-3 shadow-card z-10"
-            style={{ borderRadius: '16px 16px 4px 16px', maxWidth: 160, fontFamily: 'Poppins' }}
+            Start Your Journey
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+            icon={<Play size={18} />}
           >
-            Let's make learning easier together! 🌿
-          </div>
-
-          <img
-            src="/assets/mascot.png"
-            alt="Sereenify mascot — friendly red panda"
-            className="animate-float"
-            style={{
-              height: 'clamp(300px, 40vw, 500px)',
-              objectFit: 'contain',
-              objectPosition: 'bottom',
-              filter: 'drop-shadow(0 20px 40px rgba(40,89,67,0.2))',
-            }}
-          />
+            Learn More
+          </Button>
         </div>
       </div>
     </section>
@@ -153,30 +131,31 @@ function Hero() {
 // ─── Feature Tiles ────────────────────────────────────────────────────────────
 function FeatureTiles() {
   return (
-    <section className="py-10" style={{ background: '#FFFFFF' }}>
+    <section className="py-24" style={{ background: '#FFFFFF', borderTop: '1px solid #F2F0EB' }}>
       <div className="content-wrap">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {FEATURES.map((f, i) => (
             <div
               key={f.title}
               style={{
                 animationDelay: `${i * 0.1}s`,
-                background: '#FAF7EF',
-                padding: '28px 20px',
-                borderRadius: '20px',
+                background: '#FFFFFF',
+                padding: '40px 32px',
+                borderRadius: '24px',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                gap: '12px',
+                gap: '24px',
+                border: '1px solid #EAE8E3',
+                boxShadow: '0 4px 12px rgba(26,28,27,0.02)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
-              className="animate-fadeInUp"
+              className="hover:shadow-md hover:-translate-y-1"
             >
               <div
                 style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '14px',
+                  width: 64,
+                  height: 64,
+                  borderRadius: '16px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -186,10 +165,12 @@ function FeatureTiles() {
               >
                 {React.cloneElement(f.icon, { color: f.fg })}
               </div>
-              <h3 style={{ fontFamily: 'Poppins', fontWeight: 700, color: '#202622', fontSize: '15px', lineHeight: 1.3, margin: 0 }}>
-                {f.title}
-              </h3>
-              <p style={{ color: '#5B6660', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
+              <div>
+                <h3 style={{ fontFamily: 'Poppins', fontWeight: 600, color: '#1A1C1B', fontSize: '18px', lineHeight: 1.4, marginBottom: '12px' }}>
+                  {f.title}
+                </h3>
+                <p style={{ color: '#767A77', fontSize: '15px', lineHeight: 1.7, margin: 0 }}>{f.desc}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -201,52 +182,34 @@ function FeatureTiles() {
 // ─── How It Works ─────────────────────────────────────────────────────────────
 function HowItWorks() {
   return (
-    <section id="how-it-works" style={{ background: '#FAF7EF', padding: '80px 0' }}>
+    <section id="how-it-works" style={{ background: '#FDFBF7', padding: '128px 0' }}>
       <div className="content-wrap">
         <SectionHeading
           label="HOW IT WORKS"
           title="Simple steps for meaningful progress"
           align="center"
-          className="mb-16"
+          className="mb-24"
         />
 
-        {/* Responsive grid: 1 col → 2 col → 4 col */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '32px',
-          position: 'relative',
-          marginTop: '48px',
-        }}>
-          {/* Connector line — only visible when all 4 are in a row */}
-          <div style={{
-            position: 'absolute',
-            top: '32px',
-            left: 'calc(12.5% + 8px)',
-            right: 'calc(12.5% + 8px)',
-            height: '2px',
-            background: 'repeating-linear-gradient(90deg, #285943 0px, #285943 8px, transparent 8px, transparent 16px)',
-            pointerEvents: 'none',
-          }} className="hidden lg:block" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative">
+          {/* Connector line */}
+          <div className="hidden lg:block absolute top-[44px] left-[15%] right-[15%] h-[1px] bg-[#EAE8E3] pointer-events-none" />
 
           {STEPS.map((step, i) => (
             <div
               key={step.label}
-              className="animate-fadeInUp"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
-                gap: '16px',
                 position: 'relative',
-                animationDelay: `${i * 0.15}s`,
               }}
             >
-              {/* Circle icon */}
+              {/* Massive Circle icon */}
               <div style={{
-                width: 64,
-                height: 64,
+                width: 88,
+                height: 88,
                 borderRadius: '50%',
                 background: step.bg,
                 display: 'flex',
@@ -254,35 +217,37 @@ function HowItWorks() {
                 justifyContent: 'center',
                 position: 'relative',
                 zIndex: 1,
-                boxShadow: '0 4px 20px rgba(32,38,34,0.12)',
-                flexShrink: 0,
+                border: '4px solid #FDFBF7',
+                marginBottom: '32px',
               }}>
                 {step.icon}
-                {/* Number badge */}
+                {/* Refined Number badge */}
                 <span style={{
                   position: 'absolute',
-                  top: -4,
-                  right: -4,
-                  width: 20,
-                  height: 20,
+                  top: 0,
+                  right: -8,
+                  width: 32,
+                  height: 32,
                   borderRadius: '50%',
-                  background: '#D6A84F',
-                  color: 'white',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  fontFamily: 'Poppins',
+                  background: '#FFFFFF',
+                  color: '#4A6B53',
+                  border: '1px solid #EAE8E3',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  fontFamily: 'Inter',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(26,28,27,0.04)',
                 }}>
                   {step.num}
                 </span>
               </div>
 
-              <h3 style={{ fontFamily: 'Poppins', fontWeight: 700, color: '#202622', fontSize: '15px', margin: 0, lineHeight: 1.3 }}>
+              <h3 style={{ fontFamily: 'Poppins', fontWeight: 600, color: '#1A1C1B', fontSize: '20px', marginBottom: '16px', lineHeight: 1.3 }}>
                 {step.label}
               </h3>
-              <p style={{ color: '#5B6660', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ color: '#767A77', fontSize: '15px', lineHeight: 1.7, maxWidth: '240px' }}>
                 {step.desc}
               </p>
             </div>
@@ -297,39 +262,37 @@ function HowItWorks() {
 function TherapyThroughVisuals() {
   const navigate = useNavigate();
   return (
-    <section className="py-24" style={{ background: '#FFFFFF' }}>
+    <section style={{ background: '#FFFFFF', padding: '128px 0', borderTop: '1px solid #F2F0EB' }}>
       <div className="content-wrap">
         <SectionHeading
           label="THERAPY THROUGH VISUALS & PLAY"
           title="Fun games that heal and grow"
           subtitle="Each game is designed around cognitive science — built to gently strengthen memory, attention, and language."
           align="center"
-          className="mb-12"
+          className="mb-24"
         />
 
-        <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
-          style={{ scrollbarWidth: 'none' }}>
+        <div className="flex gap-8 overflow-x-auto pb-12 snap-x snap-mandatory scrollbar-hide">
           {GAMES.map((game, i) => (
             <div
               key={game.title}
-              className="flex-shrink-0 w-52 group cursor-pointer animate-fadeInUp"
-              style={{ animationDelay: `${i * 0.1}s` }}
+              className="flex-shrink-0 w-[280px] group cursor-pointer"
               onClick={() => navigate('/session')}
             >
-              <div className="rounded-[16px] overflow-hidden mb-3 relative" style={{ aspectRatio: '1/1' }}>
+              <div className="rounded-[24px] overflow-hidden mb-6 relative border border-[#EAE8E3]" style={{ aspectRatio: '1/1' }}>
                 <img
                   src={game.img}
                   alt={game.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-end p-3">
-                  <div className="w-8 h-8 bg-[#C7654A] rounded-full flex items-center justify-center">
-                    <ChevronRight size={16} color="white" />
+                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-end p-5">
+                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md text-[#1A1C1B]">
+                    <ArrowRight size={20} />
                   </div>
                 </div>
               </div>
-              <h3 className="font-bold text-[#202622] text-sm mb-1" style={{ fontFamily: 'Poppins' }}>{game.title}</h3>
-              <p className="text-[#5B6660] text-xs leading-relaxed">{game.desc}</p>
+              <h3 className="font-semibold text-[#1A1C1B] text-lg mb-2" style={{ fontFamily: 'Poppins' }}>{game.title}</h3>
+              <p className="text-[#767A77] text-sm leading-relaxed">{game.desc}</p>
             </div>
           ))}
         </div>
@@ -341,41 +304,29 @@ function TherapyThroughVisuals() {
 // ─── Progress Strip ───────────────────────────────────────────────────────────
 function ProgressStrip() {
   return (
-    <section className="py-12" style={{ background: '#FAF7EF' }}>
+    <section style={{ background: '#FDFBF7', padding: '128px 0' }}>
       <div className="content-wrap">
-        <Card className="flex flex-col md:flex-row items-center justify-between gap-8 p-8">
-          {/* Left: logo + tagline */}
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: '#DCE8D8' }}>
-              <TrendingUp size={24} color="#285943" />
+        <Card className="flex flex-col lg:flex-row items-center justify-between gap-16 p-12 lg:p-16 border-none shadow-[0_8px_32px_rgba(26,28,27,0.03)] bg-white">
+          {/* Left: copy */}
+          <div className="max-w-md text-center lg:text-left">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-[16px] bg-[#F3F6F4] mb-8">
+              <Sparkles size={28} color="#4A6B53" />
             </div>
-            <div>
-              <h3 className="font-bold text-[#202622] text-lg" style={{ fontFamily: 'Poppins' }}>Your Progress</h3>
-              <p className="text-[#5B6660] text-sm">Small steps, big changes!</p>
-            </div>
+            <h3 className="font-bold text-[#1A1C1B] text-3xl mb-4" style={{ fontFamily: 'Poppins', lineHeight: 1.2 }}>
+              Track your cognitive journey visually.
+            </h3>
+            <p className="text-[#767A77] text-lg leading-relaxed mb-8">
+              Small steps lead to big changes. Watch your focus and memory improve through our intuitive progress dashboard.
+            </p>
+            <Button variant="secondary" size="lg">View Dashboard</Button>
           </div>
 
-          {/* Center: ring */}
-          <div className="flex flex-col items-center gap-2">
-            <ProgressRing percent={78} size={100} strokeWidth={9} />
-            <div>
-              <p className="font-bold text-[#202622] text-sm text-center" style={{ fontFamily: 'Poppins' }}>Focus & Attention</p>
-              <p className="text-[#4C8B5D] text-xs text-center font-semibold">▲ 18% this month</p>
-            </div>
-            {/* Progress bar */}
-            <div className="w-40 h-2 rounded-full bg-[#E4E0D3] mt-1">
-              <div className="h-2 rounded-full" style={{ width: '78%', background: 'linear-gradient(90deg, #4C8B5D, #285943)' }} />
-            </div>
-          </div>
-
-          {/* Right: badge */}
-          <div className="flex flex-col items-center gap-3 text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: '#FFF5DC' }}>
-              <Star size={32} fill="#D6A84F" color="#D6A84F" />
-            </div>
-            <div>
-              <p className="font-bold text-[#202622] text-base" style={{ fontFamily: 'Poppins' }}>You're Doing Great!</p>
-              <p className="text-[#5B6660] text-sm">Keep playing and growing.</p>
+          {/* Right: visualization */}
+          <div className="flex flex-col items-center gap-6 p-8 rounded-[24px] bg-[#FDFBF7] border border-[#F2F0EB] w-full max-w-sm">
+            <ProgressRing percent={78} size={140} strokeWidth={12} color="#4A6B53" />
+            <div className="text-center mt-4">
+              <p className="font-semibold text-[#1A1C1B] text-lg" style={{ fontFamily: 'Poppins' }}>Focus & Attention</p>
+              <p className="text-[#738A7A] text-sm font-medium mt-1">▲ 18% improvement this month</p>
             </div>
           </div>
         </Card>
@@ -388,34 +339,33 @@ function ProgressStrip() {
 function CTASection() {
   const navigate = useNavigate();
   return (
-    <section className="py-24" style={{ background: '#FAF7EF' }}>
+    <section style={{ background: '#FDFBF7', padding: '0 0 160px' }}>
       <div className="content-wrap">
         <div
-          className="rounded-[24px] overflow-hidden relative flex flex-col md:flex-row items-center justify-between gap-8 p-12"
-          style={{ background: 'linear-gradient(135deg, #285943 0%, #1B3D2E 100%)' }}
+          className="rounded-[32px] overflow-hidden relative flex flex-col md:flex-row items-center justify-between gap-16 text-center md:text-left"
+          style={{ background: '#2C4233', padding: '80px 64px' }}
         >
-          {/* Decorative leaf circles */}
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10 pointer-events-none"
-            style={{ background: 'radial-gradient(circle, #DCE8D8 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
-          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10 pointer-events-none"
-            style={{ background: 'radial-gradient(circle, #D6A84F 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }} />
+          {/* Extremely subtle background accent, NO loud colors */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.03] pointer-events-none"
+            style={{ background: '#FFFFFF', transform: 'translate(20%, -30%)' }} />
 
-          <div className="relative z-10">
-            <p className="text-[#D6A84F] text-sm font-semibold uppercase tracking-wider mb-2">Sereenify</p>
-            <h2 className="font-bold text-white mb-2" style={{ fontFamily: 'Poppins', fontSize: 'clamp(24px, 3vw, 36px)' }}>
-              Together for a better learning journey.
+          <div className="relative z-10 max-w-xl">
+            <h2 className="font-bold text-white mb-6" style={{ fontFamily: 'Poppins', fontSize: 'clamp(32px, 4vw, 48px)', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
+              Begin your learning journey with Sereenify.
             </h2>
-            <p className="text-white/70">Understanding Starts with a Picture.</p>
+            <p className="text-white/80 text-lg" style={{ lineHeight: 1.8 }}>
+              Gentle, image-based cognitive care designed to make learning easier and more engaging.
+            </p>
           </div>
 
           <div className="relative z-10 shrink-0">
             <Button
-              variant="accent"
+              variant="secondary"
               size="lg"
-              iconRight={<ArrowRight size={18} />}
+              iconRight={<ArrowRight size={20} />}
               onClick={() => navigate('/onboarding')}
             >
-              Join Sereenify
+              Get Started Now
             </Button>
           </div>
         </div>

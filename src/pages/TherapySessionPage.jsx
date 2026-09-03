@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Mic, MicOff, Send, ChevronRight, ChevronDown, ChevronUp,
-  Brain, Target, Smile, BarChart3, Loader2, ArrowLeft, Leaf
+  Brain, Target, Smile, BarChart3, Loader2, ArrowLeft, Leaf, Check
 } from 'lucide-react';
 import { PageShell } from '../components/common/PageShell';
 import { Button } from '../components/common/Button';
@@ -15,27 +15,27 @@ import { mockAnalysisService } from '../services/mockAnalysisService';
 // ─── Image Card ───────────────────────────────────────────────────────────────
 function ImageCard({ image }) {
   if (!image) return (
-    <div className="rounded-[20px] bg-[#DCE8D8] flex items-center justify-center" style={{ aspectRatio: '4/3' }}>
-      <div className="flex flex-col items-center gap-3 text-[#285943]">
-        <Leaf size={48} opacity={0.4} />
-        <p className="font-medium text-sm opacity-60">Loading your image...</p>
+    <div className="rounded-[24px] bg-[#F3F6F4] flex items-center justify-center border border-[#EAE8E3]" style={{ aspectRatio: '4/3' }}>
+      <div className="flex flex-col items-center gap-4 text-[#4A6B53]">
+        <Loader2 size={32} className="animate-spin opacity-50" />
+        <p className="font-medium text-sm opacity-60">Preparing your image...</p>
       </div>
     </div>
   );
 
   return (
-    <div className="relative group">
-      <div className="rounded-[20px] overflow-hidden shadow-card" style={{ aspectRatio: '4/3' }}>
+    <div className="relative group animate-fadeInUp delay-100">
+      <div className="rounded-[24px] overflow-hidden shadow-[0_8px_24px_rgba(26,28,27,0.04)] border border-[#EAE8E3]" style={{ aspectRatio: '4/3' }}>
         <img
           src={image.url}
           alt={image.caption}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
         {/* Overlay caption */}
-        <div className="absolute bottom-0 left-0 right-0 p-4"
-          style={{ background: 'linear-gradient(to top, rgba(32,38,34,0.8) 0%, transparent 100%)' }}>
-          <p className="text-white font-semibold text-sm" style={{ fontFamily: 'Poppins' }}>{image.caption}</p>
-          <p className="text-white/70 text-xs">{image.location}, {image.year}</p>
+        <div className="absolute bottom-0 left-0 right-0 p-6"
+          style={{ background: 'linear-gradient(to top, rgba(26,28,27,0.8) 0%, transparent 100%)' }}>
+          <p className="text-white font-semibold text-base mb-1" style={{ fontFamily: 'Poppins' }}>{image.caption}</p>
+          <p className="text-white/80 text-sm">{image.location}, {image.year}</p>
         </div>
       </div>
     </div>
@@ -67,44 +67,44 @@ function ResponseInput({ onSubmit, disabled }) {
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       <div className="relative">
         <textarea
           ref={textareaRef}
           value={text}
           onChange={e => setText(e.target.value)}
           disabled={disabled || isRecording}
-          placeholder="Describe what you see in the image... What memories does it bring back?"
-          rows={5}
-          className="w-full px-4 py-4 pr-14 rounded-2xl border-2 border-[#E4E0D3] bg-white
-            text-[#202622] leading-relaxed resize-none
-            focus:outline-none focus:border-[#285943] focus:ring-2 focus:ring-[#285943]/20
-            transition-all duration-200 disabled:opacity-60"
-          style={{ fontSize: '1rem', fontFamily: 'Inter' }}
+          placeholder="Describe what you see in the image... Take your time."
+          rows={6}
+          className="w-full px-6 py-6 pr-16 rounded-[20px] border border-[#EAE8E3] bg-[#FDFBF7]
+            text-[#1A1C1B] leading-relaxed resize-none
+            focus:outline-none focus:border-[#4A6B53] focus:ring-4 focus:ring-[#4A6B53]/10
+            transition-all duration-300 disabled:opacity-50"
+          style={{ fontSize: '1.1rem', fontFamily: 'Inter' }}
         />
         {/* Mic button */}
         <button
           onClick={handleMic}
           disabled={disabled}
           className={`
-            absolute right-3 top-3 w-10 h-10 rounded-full flex items-center justify-center
-            transition-all duration-200 focus:outline-none
+            absolute right-4 top-4 w-12 h-12 rounded-full flex items-center justify-center
+            transition-all duration-300 focus:outline-none shadow-sm
             ${isRecording
-              ? 'bg-[#C7654A] text-white animate-pulse-ring'
-              : 'bg-[#DCE8D8] text-[#285943] hover:bg-[#285943] hover:text-white'
+              ? 'bg-[#1A1C1B] text-white' // Replaced red recording with deep charcoal
+              : 'bg-white text-[#4A6B53] border border-[#EAE8E3] hover:bg-[#F3F6F4]'
             }
           `}
           title={isRecording ? 'Stop recording' : 'Start voice input'}
         >
-          {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+          {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
         </button>
       </div>
 
       {isRecording && (
-        <div className="flex items-center gap-2 text-[#C7654A] text-sm font-medium">
-          <div className="flex gap-1">
+        <div className="flex items-center gap-3 text-[#1A1C1B] text-sm font-medium bg-[#F3F6F4] p-4 rounded-xl w-fit">
+          <div className="flex gap-1.5 items-center">
             {[1,2,3].map(i => (
-              <div key={i} className="w-1 rounded-full bg-[#C7654A]"
+              <div key={i} className="w-1.5 rounded-full bg-[#4A6B53]"
                 style={{ height: `${8 + i * 4}px`, animation: `pulse-ring 0.8s ease-in-out ${i * 0.15}s infinite` }} />
             ))}
           </div>
@@ -112,18 +112,18 @@ function ResponseInput({ onSubmit, disabled }) {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <span className="text-[#5B6660] text-xs">
-          {wordCount} {wordCount === 1 ? 'word' : 'words'} — aim for 20+ for best analysis
+      <div className="flex items-center justify-between pt-4 border-t border-[#F2F0EB]">
+        <span className="text-[#767A77] text-sm font-medium">
+          {wordCount} {wordCount === 1 ? 'word' : 'words'}
         </span>
         <Button
-          variant="accent"
-          size="md"
+          variant="primary"
+          size="lg"
           onClick={handleSubmit}
           disabled={disabled || text.trim().length < 5}
-          icon={<Send size={16} />}
+          icon={<Send size={18} />}
         >
-          Analyze My Answer
+          Analyze Response
         </Button>
       </div>
     </div>
@@ -137,45 +137,51 @@ function AnalysisPanel({ analysis }) {
   if (!analysis) return null;
 
   const metrics = [
-    { label: 'Focus', value: analysis.focusScore, icon: <Target size={16} />, color: '#285943' },
-    { label: 'Memory', value: analysis.memoryScore, icon: <Brain size={16} />, color: '#5B3FA0' },
-    { label: 'Sentiment', value: analysis.sentimentScore, icon: <Smile size={16} />, color: '#D6A84F' },
+    { label: 'Focus', value: analysis.focusScore, icon: <Target size={18} />, color: '#4A6B53' },
+    { label: 'Memory', value: analysis.memoryScore, icon: <Brain size={18} />, color: '#738A7A' },
+    { label: 'Sentiment', value: analysis.sentimentScore, icon: <Smile size={18} />, color: '#B3925B' },
   ];
 
   return (
-    <Card className="border-l-4 border-l-[#4C8B5D] animate-fadeInUp">
+    <Card className="border-l-[6px] border-l-[#4A6B53] p-8 lg:p-12 animate-fadeInUp">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full text-left"
+        className="flex items-center justify-between w-full text-left outline-none"
       >
-        <div className="flex items-center gap-2">
-          <BarChart3 size={18} color="#285943" />
-          <span className="font-bold text-[#202622]" style={{ fontFamily: 'Poppins' }}>Cognitive Analysis</span>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-[#F3F6F4] flex items-center justify-center">
+            <BarChart3 size={20} color="#4A6B53" />
+          </div>
+          <span className="font-bold text-[#1A1C1B] text-xl" style={{ fontFamily: 'Poppins' }}>Cognitive Analysis</span>
         </div>
-        {open ? <ChevronUp size={18} color="#5B6660" /> : <ChevronDown size={18} color="#5B6660" />}
+        <div className="w-8 h-8 rounded-full bg-[#FDFBF7] border border-[#EAE8E3] flex items-center justify-center">
+          {open ? <ChevronUp size={16} color="#767A77" /> : <ChevronDown size={16} color="#767A77" />}
+        </div>
       </button>
 
       {open && (
-        <div className="mt-5 space-y-5 animate-fadeInUp">
+        <div className="mt-10 space-y-10 animate-fadeInUp">
           {/* Encouragement */}
-          <div className="p-4 rounded-xl" style={{ background: '#DCE8D8' }}>
-            <p className="text-[#285943] font-semibold text-sm">🌿 {analysis.encouragement}</p>
+          <div className="p-6 rounded-[16px] bg-[#F3F6F4] border border-[#E6EBE7]">
+            <p className="text-[#2C4233] font-medium text-base leading-relaxed">
+              <SparklesIcon className="inline mr-2 -mt-1 text-[#4A6B53]" size={18} />
+              {analysis.encouragement}
+            </p>
           </div>
 
           {/* Score rings */}
-          <div className="flex flex-wrap justify-around gap-4">
+          <div className="flex flex-wrap justify-around gap-8">
             {metrics.map(m => (
-              <ProgressRing key={m.label} percent={m.value} size={90} strokeWidth={8} color={m.color} label={m.label} />
+              <ProgressRing key={m.label} percent={m.value} size={110} strokeWidth={10} color={m.color} label={m.label} />
             ))}
           </div>
 
           {/* Key themes */}
           <div>
-            <p className="text-xs font-semibold text-[#5B6660] uppercase tracking-wide mb-2">Key Themes Detected</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-sm font-bold text-[#767A77] uppercase tracking-wider mb-4">Key Themes Detected</p>
+            <div className="flex flex-wrap gap-3">
               {analysis.keyThemes.map(theme => (
-                <span key={theme} className="px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: '#DCE8D8', color: '#285943' }}>
+                <span key={theme} className="px-4 py-2 rounded-full text-sm font-medium bg-[#FDFBF7] text-[#4A6B53] border border-[#EAE8E3]">
                   {theme}
                 </span>
               ))}
@@ -183,15 +189,15 @@ function AnalysisPanel({ analysis }) {
           </div>
 
           {/* Cognitive markers */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-[#F2F0EB]">
             {Object.entries(analysis.cognitiveMarkers).map(([key, val]) => (
-              <div key={key} className="flex flex-col items-center gap-1 p-3 rounded-xl"
-                style={{ background: val ? '#DCE8D8' : '#FEF0E7' }}>
-                <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold`}
-                  style={{ background: val ? '#285943' : '#C7654A', color: 'white' }}>
-                  {val ? '✓' : '○'}
+              <div key={key} className="flex items-center gap-3 p-4 rounded-[16px]"
+                style={{ background: val ? '#F3F6F4' : '#FDFBF7', border: '1px solid #EAE8E3' }}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0`}
+                  style={{ background: val ? '#4A6B53' : '#EAE8E3', color: val ? 'white' : '#A3A8A5' }}>
+                  {val ? <Check size={12} strokeWidth={4} /> : <div className="w-1.5 h-1.5 rounded-full bg-current" />}
                 </div>
-                <span className="text-[#202622] text-[10px] font-semibold text-center capitalize leading-tight">
+                <span className="text-[#1A1C1B] text-xs font-semibold capitalize leading-tight">
                   {key.replace(/([A-Z])/g, ' $1').trim()}
                 </span>
               </div>
@@ -201,6 +207,10 @@ function AnalysisPanel({ analysis }) {
       )}
     </Card>
   );
+}
+
+function SparklesIcon(props) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>;
 }
 
 // ─── Therapy Session Page ─────────────────────────────────────────────────────
@@ -237,53 +247,48 @@ export function TherapySessionPage() {
 
   return (
     <PageShell noFooter>
-      <div className="min-h-[calc(100vh-64px)] py-8" style={{ background: '#FAF7EF' }}>
-        <div className="content-wrap">
+      <div className="min-h-[calc(100vh-80px)] py-16 lg:py-24" style={{ background: '#FDFBF7' }}>
+        <div className="content-wrap max-w-7xl">
 
           {/* Header row */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-wrap items-center justify-between mb-16 gap-6">
             <button onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-[#5B6660] hover:text-[#285943] font-medium text-sm transition-colors">
-              <ArrowLeft size={16} /> Back to Home
+              className="flex items-center gap-2 text-[#767A77] hover:text-[#1A1C1B] font-medium text-base transition-colors duration-300">
+              <ArrowLeft size={20} /> Exit Session
             </button>
-            <div className="text-center">
-              <span className="text-[#5B6660] text-sm">Session</span>
-              <span className="text-[#285943] font-bold ml-2" style={{ fontFamily: 'Poppins' }}>#{sessionCount}</span>
+            <div className="text-center px-6 py-2 rounded-full bg-white border border-[#EAE8E3] shadow-sm">
+              <span className="text-[#767A77] text-sm font-medium">Session Progress</span>
+              <span className="text-[#1A1C1B] font-bold ml-3" style={{ fontFamily: 'Poppins' }}>{sessionCount} / 5</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-[#5B6660]">Track:</span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold capitalize"
-                style={{ background: '#DCE8D8', color: '#285943' }}>
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-[#767A77] font-medium">Track</span>
+              <span className="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
+                style={{ background: '#F3F6F4', color: '#4A6B53', border: '1px solid #E6EBE7' }}>
                 {session.track || 'Alzheimer\'s'}
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 lg:gap-16">
             {/* Left: sidebar */}
-            <aside className="lg:col-span-2 space-y-5">
+            <aside className="xl:col-span-5 space-y-8">
               {/* Patient info */}
-              <Card className="p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-[#DCE8D8] flex items-center justify-center">
-                    <span className="font-bold text-[#285943]" style={{ fontFamily: 'Poppins' }}>
+              <Card className="p-8 border-none shadow-[0_4px_16px_rgba(26,28,27,0.03)] bg-white">
+                <div className="flex items-center gap-5 mb-6">
+                  <div className="w-14 h-14 rounded-full bg-[#F3F6F4] flex items-center justify-center border border-[#EAE8E3]">
+                    <span className="text-xl font-bold text-[#4A6B53]" style={{ fontFamily: 'Poppins' }}>
                       {session.profile?.name?.[0] || 'P'}
                     </span>
                   </div>
                   <div>
-                    <p className="font-bold text-[#202622]" style={{ fontFamily: 'Poppins' }}>
-                      {session.profile?.name || 'Patient'}
+                    <p className="font-bold text-[#1A1C1B] text-lg" style={{ fontFamily: 'Poppins' }}>
+                      {session.profile?.name || 'Patient Profile'}
                     </p>
-                    <p className="text-[#5B6660] text-xs">
+                    <p className="text-[#767A77] text-sm mt-1">
                       {session.profile?.age ? `Age ${session.profile.age}` : ''}
                       {session.profile?.caregiverName ? ` · Caregiver: ${session.profile.caregiverName}` : ''}
                     </p>
                   </div>
-                </div>
-                <div className="h-px bg-[#E4E0D3] mb-4" />
-                <div className="flex justify-between items-center">
-                  <span className="text-[#5B6660] text-sm">Images seen</span>
-                  <span className="font-bold text-[#285943]" style={{ fontFamily: 'Poppins' }}>{sessionCount}</span>
                 </div>
               </Card>
 
@@ -292,33 +297,40 @@ export function TherapySessionPage() {
 
               {/* Prompt */}
               {image && (
-                <Card className="p-5" style={{ background: '#FAF7EF' }}>
-                  <p className="text-xs font-semibold text-[#5B6660] uppercase tracking-wide mb-2">Your Prompt</p>
-                  <p className="text-[#202622] leading-relaxed" style={{ fontSize: '1rem' }}>{image.prompt}</p>
+                <Card className="p-8 border-[#EAE8E3] bg-[#FDFBF7] shadow-none">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-[#E6EBE7] flex items-center justify-center">
+                      <SparklesIcon size={14} className="text-[#4A6B53]" />
+                    </div>
+                    <p className="text-xs font-bold text-[#767A77] uppercase tracking-widest">Focus Prompt</p>
+                  </div>
+                  <p className="text-[#1A1C1B] leading-relaxed text-lg" style={{ fontFamily: 'Poppins' }}>{image.prompt}</p>
                 </Card>
               )}
             </aside>
 
             {/* Right: main area */}
-            <main className="lg:col-span-3 space-y-5">
+            <main className="xl:col-span-7 space-y-12">
               {/* Response input */}
-              <Card className="p-6">
-                <h2 className="font-bold text-[#202622] text-xl mb-1" style={{ fontFamily: 'Poppins' }}>
+              <Card className="p-10 lg:p-12 shadow-[0_16px_40px_rgba(26,28,27,0.04)] border-none">
+                <h2 className="font-bold text-[#1A1C1B] text-3xl mb-3" style={{ fontFamily: 'Poppins', letterSpacing: '-0.02em' }}>
                   Share what you see
                 </h2>
-                <p className="text-[#5B6660] text-sm mb-5">Type or use the microphone — take your time, there's no rush.</p>
+                <p className="text-[#767A77] text-base mb-10 leading-relaxed">
+                  Take a moment to observe the image. Describe the details, the setting, or any memories it brings to mind.
+                </p>
                 <ResponseInput onSubmit={handleAnalyze} disabled={analyzing} />
               </Card>
 
               {/* Analyzing state */}
               {analyzing && (
-                <Card className="p-6 flex items-center gap-4 animate-fadeInUp">
-                  <div className="w-10 h-10 rounded-full bg-[#DCE8D8] flex items-center justify-center shrink-0 animate-pulse-ring">
-                    <Loader2 size={20} color="#285943" className="animate-spin" />
+                <Card className="p-10 flex items-center gap-6 animate-fadeInUp border-none shadow-[0_8px_24px_rgba(26,28,27,0.03)]">
+                  <div className="w-14 h-14 rounded-full bg-[#F3F6F4] flex items-center justify-center shrink-0 border border-[#EAE8E3]">
+                    <Loader2 size={24} className="text-[#4A6B53] animate-spin" />
                   </div>
                   <div>
-                    <p className="font-semibold text-[#202622]" style={{ fontFamily: 'Poppins' }}>Analyzing your response…</p>
-                    <p className="text-[#5B6660] text-sm">Our AI is gently reviewing your words. Just a moment.</p>
+                    <p className="font-bold text-[#1A1C1B] text-lg mb-1" style={{ fontFamily: 'Poppins' }}>Analyzing your response…</p>
+                    <p className="text-[#767A77] text-base">Our AI is gently reviewing your words. Just a moment.</p>
                   </div>
                 </Card>
               )}
@@ -328,28 +340,20 @@ export function TherapySessionPage() {
 
               {/* Next image button */}
               {analysis && !analyzing && (
-                <div className="flex justify-end animate-fadeInUp">
+                <div className="flex justify-end animate-fadeInUp pt-6">
                   <Button
                     variant="primary"
                     size="lg"
                     onClick={handleNext}
-                    iconRight={<ChevronRight size={18} />}
+                    iconRight={<ChevronRight size={20} />}
                   >
-                    Next Image
+                    Continue to Next Image
                   </Button>
                 </div>
               )}
             </main>
           </div>
         </div>
-      </div>
-
-      {/* Floating mascot help */}
-      <div
-        className="fixed bottom-6 right-6 w-16 h-16 rounded-full overflow-hidden shadow-[0_4px_20px_rgba(32,38,34,0.2)] cursor-pointer hover:scale-105 transition-transform duration-200"
-        title="Need help?"
-      >
-        <img src="/assets/mascot.png" alt="Help" className="w-full h-full object-cover object-top" />
       </div>
     </PageShell>
   );

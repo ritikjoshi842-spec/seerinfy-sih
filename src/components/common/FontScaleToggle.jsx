@@ -21,10 +21,10 @@ export function FontScaleToggle() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
         borderRadius: '50%',
-        border: '2px solid rgba(255,255,255,0.4)',
+        border: '2px solid rgba(255,255,255,0.5)',
         color: 'white',
         background: hovered ? 'rgba(255,255,255,0.2)' : 'transparent',
         display: 'flex',
@@ -33,7 +33,7 @@ export function FontScaleToggle() {
         cursor: 'pointer',
         fontFamily: 'Inter, sans-serif',
         fontWeight: 600,
-        fontSize: '13px',
+        fontSize: '14px',
         transition: 'all 0.2s ease',
         outline: 'none',
         flexShrink: 0,
