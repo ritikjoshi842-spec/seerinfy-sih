@@ -9,7 +9,7 @@ import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { ProgressRing } from '../components/common/ProgressRing';
 import { useSession } from '../context/PatientSessionContext';
-import { mockImageService } from '../services/mockImageService';
+import { imageService } from '../services/imageService';
 import { mockAnalysisService } from '../services/mockAnalysisService';
 
 // ─── Image Card ───────────────────────────────────────────────────────────────
@@ -34,8 +34,14 @@ function ImageCard({ image }) {
         {/* Overlay caption */}
         <div className="absolute bottom-0 left-0 right-0 p-6"
           style={{ background: 'linear-gradient(to top, rgba(26,28,27,0.8) 0%, transparent 100%)' }}>
-          <p className="text-white font-semibold text-base mb-1" style={{ fontFamily: 'Poppins' }}>{image.caption}</p>
-          <p className="text-white/80 text-sm">{image.location}, {image.year}</p>
+          <p className="text-white font-semibold text-base mb-1 capitalize" style={{ fontFamily: 'Poppins' }}>{image.caption}</p>
+          {image.photographer_profile_url ? (
+            <p className="text-white/80 text-sm">
+              Photo by <a href={image.photographer_profile_url} target="_blank" rel="noreferrer" className="underline hover:text-white">{image.location}</a> on <a href={image.unsplash_link} target="_blank" rel="noreferrer" className="underline hover:text-white">Unsplash</a>
+            </p>
+          ) : (
+            <p className="text-white/80 text-sm">{image.location}</p>
+          )}
         </div>
       </div>
     </div>
@@ -217,17 +223,34 @@ function SparklesIcon(props) {
 export function TherapySessionPage() {
   const { session, updateSession } = useSession();
   const navigate = useNavigate();
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(session.currentImage || null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState(null);
-  const [sessionCount, setSessionCount] = useState(1);
+  const [analysis, setAnalysis] = useState(session.analysis || null);
+  const [sessionCount, setSessionCount] = useState((session.imageIndex || 0) + 1);
+
+  const mapBackendImage = (data) => ({
+    url: data.image_url,
+    caption: data.category.replace('_', ' ') + ' memory',
+    location: data.photographer_name,
+    year: '',
+    prompt: data.caption,
+    photographer_profile_url: data.photographer_profile_url,
+    unsplash_link: data.unsplash_link
+  });
 
   useEffect(() => {
-    mockImageService.getImage(session.imageIndex || 0).then(img => {
-      setImage(img);
-      updateSession({ currentImage: img });
-    });
-  }, [session.imageIndex]);
+    let isMounted = true;
+    if ((session.imageIndex || 0) === 0 && !session.backendSessionId) {
+      imageService.startSession(session.profile || {}).then(data => {
+        if (!isMounted) return;
+        updateSession({ backendSessionId: data.session_id });
+        const imgData = mapBackendImage(data);
+        setImage(imgData);
+        updateSession({ currentImage: imgData });
+      }).catch(console.error);
+    }
+    return () => { isMounted = false; };
+  }, []); // Run on mount
 
   const handleAnalyze = async (response) => {
     setAnalyzing(true);
@@ -239,10 +262,17 @@ export function TherapySessionPage() {
     setAnalyzing(false);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setAnalysis(null);
     setSessionCount(c => c + 1);
-    updateSession({ imageIndex: (session.imageIndex || 0) + 1, analysis: null });
+    try {
+      const data = await imageService.nextImage(session.backendSessionId, session.response || "");
+      const imgData = mapBackendImage(data);
+      setImage(imgData);
+      updateSession({ imageIndex: (session.imageIndex || 0) + 1, analysis: null, currentImage: imgData });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
