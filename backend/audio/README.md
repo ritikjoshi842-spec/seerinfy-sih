@@ -24,7 +24,7 @@ Teammates working on downstream NLP, scoring, or frontend tasks can execute a si
 | **Hugging Face**  | Account required to accept gated access terms for IndicConformer models |
 
 ### Stub Fallback Mode
-If running without NeMo (e.g., native Windows or no NVIDIA GPU), the pipeline automatically operates in **stub mode** (`NEMO_AVAILABLE = False`). It still computes acoustic biomarkers normally and returns mock transcript text so API/frontend testing can proceed without errors.
+If NeMo is unavailable, the pipeline falls back to **stub mode** (`NEMO_AVAILABLE = False`). Acoustic biomarkers are still computed normally. CPU execution is supported, while a CUDA-capable NVIDIA GPU is recommended for better ASR performance.
 
 ---
 
@@ -68,17 +68,17 @@ python backend/scripts/apply_nemo_patches.py NeMo
 
 IndicConformer models are license-gated. Before running evaluations, visit each link on Hugging Face and click **"Agree and access repository"**:
 
-- [Hindi (`hi`)](https://huggingface.co/ai4bharat/indicconformer_stt_hi_hybrid_ctc_rnnt_large)
-- [Gujarati (`gu`)](https://huggingface.co/ai4bharat/indicconformer_stt_gu_hybrid_ctc_rnnt_large)
-- [Assamese (`as`)](https://huggingface.co/ai4bharat/indicconformer_stt_as_hybrid_ctc_rnnt_large)
-- [Bodo (`brx`)](https://huggingface.co/ai4bharat/indicconformer_stt_brx_hybrid_ctc_rnnt_large)
-- [Manipuri (`mni`)](https://huggingface.co/ai4bharat/indicconformer_stt_mni_hybrid_ctc_rnnt_large)
-- [Urdu (`ur`)](https://huggingface.co/ai4bharat/indicconformer_stt_ur_hybrid_ctc_rnnt_large)
+- [Hindi (`hi`)](https://huggingface.co/ai4bharat/indicconformer_stt_hi_hybrid_rnnt_large)
+- [Gujarati (`gu`)](https://huggingface.co/ai4bharat/indicconformer_stt_gu_hybrid_rnnt_large)
+- [Assamese (`as`)](https://huggingface.co/ai4bharat/indicconformer_stt_as_hybrid_rnnt_large)
+- [Bodo (`brx`)](https://huggingface.co/ai4bharat/indicconformer_stt_brx_hybrid_rnnt_large)
+- [Manipuri (`mni`)](https://huggingface.co/ai4bharat/indicconformer_stt_mni_hybrid_rnnt_large)
+- [Urdu (`ur`)](https://huggingface.co/ai4bharat/indicconformer_stt_ur_hybrid_rnnt_large)
 
 Log into your Hugging Face account via the terminal:
 
 ```bash
-huggingface-cli login
+hf auth login
 ```
 
 Preload and verify the 6 demo checkpoints:
@@ -87,7 +87,7 @@ Preload and verify the 6 demo checkpoints:
 python backend/scripts/preload_models.py
 ```
 
-All models (~3.1 GB total) will download into your local snapshot directory (`~/.cache/huggingface/hub/`). Once cached, inference runs completely offline with no network dependencies.
+The models will download into your local Hugging Face cache (`~/.cache/huggingface/hub/`). Once cached, subsequent runs can reuse the local model files without downloading them again unless the cache is removed.
 
 ---
 
