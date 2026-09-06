@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Image, Gamepad2, User, TrendingUp, ArrowRight,
-  Play, ChevronRight, Star, Sparkles
+  Play, Sparkles
 } from 'lucide-react';
 import { PageShell } from '../components/common/PageShell';
 import { Button } from '../components/common/Button';
@@ -195,7 +195,7 @@ function HowItWorks() {
           {/* Connector line */}
           <div className="hidden lg:block absolute top-[44px] left-[15%] right-[15%] h-[1px] bg-[#EAE8E3] pointer-events-none" />
 
-          {STEPS.map((step, i) => (
+          {STEPS.map((step, _i) => (
             <div
               key={step.label}
               style={{
@@ -273,7 +273,7 @@ function TherapyThroughVisuals() {
         />
 
         <div className="flex gap-8 overflow-x-auto pb-12 snap-x snap-mandatory scrollbar-hide">
-          {GAMES.map((game, i) => (
+          {GAMES.map((game, _i) => (
             <div
               key={game.title}
               className="flex-shrink-0 w-[280px] group cursor-pointer"

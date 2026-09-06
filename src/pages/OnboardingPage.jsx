@@ -1,10 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { User, Calendar, Heart, Globe, Check, ArrowRight, Briefcase, Palette, PaintBucket, Music, MapPin } from 'lucide-react';
+import { User, Calendar, Heart, Globe, Check, ArrowRight, Briefcase, Palette, PaintBucket, Music, MapPin, Brain } from 'lucide-react';
 import { PageShell } from '../components/common/PageShell';
 import { Button } from '../components/common/Button';
-import { Card } from '../components/common/Card';
 import { useSession } from '../context/PatientSessionContext';
 
 const LANGUAGES = ['English', 'Tamil', 'Hindi', 'Bengali', 'Marathi', 'Telugu', 'Kannada', 'Malayalam'];
@@ -221,14 +220,6 @@ function ProfileForm({ onSubmit }) {
   );
 }
 
-// Need to import Brain from lucide-react, so adding it here (I missed it in the main import above).
-// Wait, I will just add Brain to the top import.
-// Actually, it's safer to just define a quick Brain component or fix the import. 
-// I'll make sure Brain is imported. Let me re-write the top imports.
-
-function Brain(props) {
-  return <svg xmlns="http://www.w3.org/2000/svg" width={props.size||24} height={props.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/></svg>
-}
 
 // ─── Onboarding Page ──────────────────────────────────────────────────────────
 export function OnboardingPage() {

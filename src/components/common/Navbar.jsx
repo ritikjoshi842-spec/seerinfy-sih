@@ -1,9 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Leaf, Menu, X } from 'lucide-react';
-import { FontScaleToggle } from './FontScaleToggle';
-import { Button } from './Button';
-
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Alzheimer\'s', to: '/about' },

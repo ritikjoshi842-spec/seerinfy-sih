@@ -1,4 +1,4 @@
-# Logs
+﻿# Logs
 logs
 *.log
 npm-debug.log*
@@ -7,15 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -23,7 +24,46 @@ dist-ssr
 *.sln
 *.sw?
 
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Virtual environments
+venv/
+venv312/
+.venv/
+
+# NeMo source checkout
+NeMo/
+
+# Downloaded model files / checkpoints
+models/
+checkpoints/
+*.nemo
+*.ckpt
+*.pt
+*.pth
+
+# Hugging Face / local caches
+.huggingface/
+.cache/
+
+# Environment / secrets
 .env
-seerinfy/
+.env.*
+
+# Local audio recordings
+*.mp3
+*.m4a
+*.flac
+*.ogg
+my_recording*
+WhatsApp Audio*
+
+# Local pipeline outputs
+result*.json
+*.safetensors
+*.bin
+*.onnx

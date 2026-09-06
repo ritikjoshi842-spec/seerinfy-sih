@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Mic, MicOff, Send, ChevronRight, ChevronDown, ChevronUp,
-  Brain, Target, Smile, BarChart3, Loader2, ArrowLeft, Leaf, Check
+  Brain, Target, Smile, BarChart3, Loader2, ArrowLeft, Check
 } from 'lucide-react';
 import { PageShell } from '../components/common/PageShell';
 import { Button } from '../components/common/Button';
@@ -250,7 +250,7 @@ export function TherapySessionPage() {
       }).catch(console.error);
     }
     return () => { isMounted = false; };
-  }, []); // Run on mount
+  }, [session.imageIndex, updateSession, session.profile, session.backendSessionId]); // Run on mount
 
   const handleAnalyze = async (response) => {
     setAnalyzing(true);

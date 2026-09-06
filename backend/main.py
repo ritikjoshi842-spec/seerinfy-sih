@@ -138,17 +138,27 @@ async def fetch_unsplash_photo(query: str) -> dict:
         "content_filter": "high",
         "orientation": "landscape",
     }
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.get(f"{UNSPLASH_API_BASE}/search/photos", headers=headers, params=params)
-
-    if resp.status_code == 403:
-        logger.warning("Unsplash rate limit hit: %s", resp.headers.get("X-Ratelimit-Remaining"))
-        raise HTTPException(status_code=503, detail="Image service is temporarily busy. Please try again shortly.")
-    resp.raise_for_status()
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"{UNSPLASH_API_BASE}/search/photos", headers=headers, params=params)
+        
+        if resp.status_code == 403:
+            logger.warning("Unsplash rate limit hit: %s", resp.headers.get("X-Ratelimit-Remaining"))
+            raise HTTPException(status_code=503, detail="Image service is temporarily busy. Please try again shortly.")
+        
+        resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        logger.error(f"Unsplash API error: {exc.response.status_code} - {exc.response.text}")
+        raise HTTPException(status_code=502, detail="Error communicating with Unsplash API")
+    except httpx.RequestError as exc:
+        logger.error(f"Unsplash connection error: {exc}")
+        raise HTTPException(status_code=503, detail="Unsplash API is unreachable")
 
     data = resp.json()
     results = data.get("results", [])
     if not results:
+        if query == "cherished memory":
+            raise HTTPException(status_code=404, detail="No suitable images found.")
         # one safe retry with a generic fallback query
         return await fetch_unsplash_photo("cherished memory")
 
@@ -191,49 +201,61 @@ async def health():
 
 @app.post("/api/session/start", response_model=ImageResponse)
 async def start_session(profile: PatientProfile):
-    session_id = str(uuid.uuid4())
-    category = CATEGORY_ORDER[0]
-    cursor = {"hobby_idx": 0, "place_idx": 0}
+    try:
+        session_id = str(uuid.uuid4())
+        category = CATEGORY_ORDER[0]
+        cursor = {"hobby_idx": 0, "place_idx": 0}
 
-    query = build_query_for_category(profile, category, cursor)
-    photo = await fetch_unsplash_photo(query)
-    await trigger_download_event(photo)
+        query = build_query_for_category(profile, category, cursor)
+        photo = await fetch_unsplash_photo(query)
+        await trigger_download_event(photo)
 
-    SESSIONS[session_id] = {
-        "profile": profile,
-        "cursor": cursor,
-        "category_index": 0,   # index into CATEGORY_ORDER
-        "step": 1,
-    }
+        SESSIONS[session_id] = {
+            "profile": profile,
+            "cursor": cursor,
+            "category_index": 0,   # index into CATEGORY_ORDER
+            "step": 1,
+        }
 
-    caption = build_caption(category, query)
-    return photo_to_response(photo, category, caption, session_id, step=1, is_last=False)
+        caption = build_caption(category, query)
+        return photo_to_response(photo, category, caption, session_id, step=1, is_last=False)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in start_session: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/session/{session_id}/next", response_model=ImageResponse)
 async def next_image(session_id: str, payload: DescriptionPayload):
-    session = SESSIONS.get(session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found. Start a new session.")
+    try:
+        session = SESSIONS.get(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found. Start a new session.")
 
-    # (Optional) store the patient's description for this step for later review/analysis.
-    session.setdefault("descriptions", []).append(payload.description)
+        # (Optional) store the patient's description for this step for later review/analysis.
+        session.setdefault("descriptions", []).append(payload.description)
 
-    session["category_index"] = (session["category_index"] + 1) % len(CATEGORY_ORDER)
-    category = CATEGORY_ORDER[session["category_index"]]
-    session["step"] += 1
+        session["category_index"] = (session["category_index"] + 1) % len(CATEGORY_ORDER)
+        category = CATEGORY_ORDER[session["category_index"]]
+        session["step"] += 1
 
-    query = build_query_for_category(session["profile"], category, session["cursor"])
-    photo = await fetch_unsplash_photo(query)
-    await trigger_download_event(photo)
+        query = build_query_for_category(session["profile"], category, session["cursor"])
+        photo = await fetch_unsplash_photo(query)
+        await trigger_download_event(photo)
 
-    caption = build_caption(category, query)
-    # "is_last_in_cycle" is a soft signal the frontend can use to show
-    # "Finish Session" instead of "See another memory" after a full loop —
-    # adjust MAX_STEPS to whatever session length the frontend expects.
-    MAX_STEPS = 8
-    is_last = session["step"] >= MAX_STEPS
+        caption = build_caption(category, query)
+        # "is_last_in_cycle" is a soft signal the frontend can use to show
+        # "Finish Session" instead of "See another memory" after a full loop —
+        # adjust MAX_STEPS to whatever session length the frontend expects.
+        MAX_STEPS = 8
+        is_last = session["step"] >= MAX_STEPS
 
-    return photo_to_response(photo, category, caption, session_id, step=session["step"], is_last=is_last)
+        return photo_to_response(photo, category, caption, session_id, step=session["step"], is_last=is_last)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in next_image: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/session/{session_id}/current", response_model=Optional[dict])
 async def get_session_debug(session_id: str):
@@ -246,3 +268,53 @@ async def get_session_debug(session_id: str):
         "category_index": session["category_index"],
         "descriptions_recorded": len(session.get("descriptions", [])),
     }
+
+from fastapi import UploadFile, File, Form
+
+@app.post("/api/audio/analyze")
+async def analyze_audio_endpoint(
+    audio: UploadFile = File(...),
+    patient_id: str = Form(...),
+    language: str = Form(...)
+):
+    """
+    Optional audio analysis endpoint.
+    Dynamically loads heavy ML dependencies (PyTorch, NeMo, etc.) only when called.
+    If dependencies are missing (e.g. in a lightweight cloud deployment), gracefully returns 503.
+    """
+    import sys
+    import tempfile
+    
+    # 1. Safely attempt to load the audio pipeline
+    try:
+        audio_dir = os.path.join(os.path.dirname(__file__), "audio")
+        if audio_dir not in sys.path:
+            sys.path.insert(0, audio_dir)
+            
+        from audio_pipeline import AudioAssessmentPipeline
+    except ImportError as e:
+        logger.error(f"Audio processing dependencies not available: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="Audio analysis model is not available in this environment. Heavy dependencies are not installed."
+        )
+
+    # 2. Save uploaded file to a temporary location for the pipeline
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        tmp.write(await audio.read())
+        tmp_path = tmp.name
+
+    # 3. Process the audio
+    try:
+        pipeline = AudioAssessmentPipeline()
+        result = pipeline.process(tmp_path, language, patient_id=patient_id)
+        return result
+    except Exception as e:
+        logger.error(f"Audio processing failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred while processing the audio: {str(e)}"
+        )
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
