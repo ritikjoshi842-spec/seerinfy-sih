@@ -4,6 +4,7 @@ import {
   Mic, MicOff, Send, ChevronRight, ChevronDown, ChevronUp,
   Brain, Target, Smile, BarChart3, Loader2, ArrowLeft, Check
 } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { PageShell } from '../components/common/PageShell';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
@@ -142,11 +143,36 @@ function AnalysisPanel({ analysis }) {
 
   if (!analysis) return null;
 
-  const metrics = [
-    { label: 'Focus', value: analysis.focusScore, icon: <Target size={18} />, color: '#4A6B53' },
-    { label: 'Memory', value: analysis.memoryScore, icon: <Brain size={18} />, color: '#738A7A' },
-    { label: 'Sentiment', value: analysis.sentimentScore, icon: <Smile size={18} />, color: '#B3925B' },
+  // Chart 1: Lexical Density
+  const lexicalData = [
+    { name: 'Keywords', value: analysis.lexical_density_pct },
+    { name: 'Other Words', value: Number((100 - analysis.lexical_density_pct).toFixed(1)) }
   ];
+
+  // Chart 2: Filler Word Ratio
+  const fillerData = [
+    { name: 'Filler Words', value: analysis.filler_word_pct },
+    { name: 'Clean Speech', value: Number((100 - analysis.filler_word_pct).toFixed(1)) }
+  ];
+
+  // Chart 3: Final Score Composition
+  const COMPLETENESS_WEIGHT = 0.4;
+  const SEMANTIC_WEIGHT = 0.6;
+  
+  const compContrib = Number((COMPLETENESS_WEIGHT * analysis.lexical_density_pct).toFixed(1));
+  const semContrib = Number((SEMANTIC_WEIGHT * analysis.weighted_relevance_pct).toFixed(1));
+  const finalScore = analysis.final_score_pct;
+  const remainder = Number((100 - finalScore).toFixed(1));
+
+  const compositionData = [
+    { name: 'Completeness', value: compContrib },
+    { name: 'Semantic Relevance', value: semContrib },
+    { name: 'Remainder', value: remainder }
+  ];
+
+  const COLORS_LEXICAL = ['#4A6B53', '#EAE8E3'];
+  const COLORS_FILLER = ['#B3925B', '#4A6B53'];
+  const COLORS_COMPOSITION = ['#4A6B53', '#738A7A', '#EAE8E3'];
 
   return (
     <Card className="border-l-[6px] border-l-[#4A6B53] p-8 lg:p-12 animate-fadeInUp">
@@ -175,19 +201,63 @@ function AnalysisPanel({ analysis }) {
             </p>
           </div>
 
-          {/* Score rings */}
-          <div className="flex flex-wrap justify-around gap-8">
-            {metrics.map(m => (
-              <ProgressRing key={m.label} percent={m.value} size={110} strokeWidth={10} color={m.color} label={m.label} />
-            ))}
+          {/* Real Pie Charts */}
+          <div className="flex flex-col md:flex-row justify-around gap-8">
+            {/* Chart 1 */}
+            <div className="flex flex-col items-center">
+              <h4 className="text-sm font-bold text-[#767A77] uppercase tracking-wider mb-2">Lexical Density</h4>
+              <PieChart width={200} height={200}>
+                <Pie data={lexicalData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value" stroke="none">
+                  {lexicalData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS_LEXICAL[index % COLORS_LEXICAL.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `${value}%`} />
+              </PieChart>
+              <div className="text-center mt-2">
+                <span className="text-2xl font-bold text-[#1A1C1B]">{analysis.lexical_density_pct}%</span>
+              </div>
+            </div>
+
+            {/* Chart 2 */}
+            <div className="flex flex-col items-center">
+              <h4 className="text-sm font-bold text-[#767A77] uppercase tracking-wider mb-2">Filler Ratio</h4>
+              <PieChart width={200} height={200}>
+                <Pie data={fillerData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value" stroke="none">
+                  {fillerData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS_FILLER[index % COLORS_FILLER.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `${value}%`} />
+              </PieChart>
+              <div className="text-center mt-2">
+                <span className="text-2xl font-bold text-[#1A1C1B]">{analysis.filler_word_pct}%</span>
+              </div>
+            </div>
+
+            {/* Chart 3 */}
+            <div className="flex flex-col items-center">
+              <h4 className="text-sm font-bold text-[#767A77] uppercase tracking-wider mb-2">Final Score</h4>
+              <PieChart width={200} height={200}>
+                <Pie data={compositionData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value" stroke="none">
+                  {compositionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS_COMPOSITION[index % COLORS_COMPOSITION.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `${value}%`} />
+              </PieChart>
+              <div className="text-center mt-2">
+                <span className="text-2xl font-bold text-[#1A1C1B]">{analysis.final_score_pct}%</span>
+              </div>
+            </div>
           </div>
 
           {/* Key themes */}
           <div>
             <p className="text-sm font-bold text-[#767A77] uppercase tracking-wider mb-4">Key Themes Detected</p>
             <div className="flex flex-wrap gap-3">
-              {analysis.keyThemes.map(theme => (
-                <span key={theme} className="px-4 py-2 rounded-full text-sm font-medium bg-[#FDFBF7] text-[#4A6B53] border border-[#EAE8E3]">
+              {analysis.keyThemes.map((theme, i) => (
+                <span key={i} className="px-4 py-2 rounded-full text-sm font-medium bg-[#FDFBF7] text-[#4A6B53] border border-[#EAE8E3]">
                   {theme}
                 </span>
               ))}
@@ -256,9 +326,13 @@ export function TherapySessionPage() {
     setAnalyzing(true);
     setAnalysis(null);
     updateSession({ response });
-    const result = await mockAnalysisService.analyze(response);
-    setAnalysis(result);
-    updateSession({ analysis: result });
+    try {
+      const result = await imageService.analyzeDescription(session.backendSessionId, response);
+      setAnalysis(result);
+      updateSession({ analysis: result });
+    } catch (e) {
+      console.error(e);
+    }
     setAnalyzing(false);
   };
 

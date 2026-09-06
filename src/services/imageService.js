@@ -33,5 +33,17 @@ export const imageService = {
     if (!response.ok) throw new Error("Failed to get next image");
     
     return await response.json();
+  },
+  
+  analyzeDescription: async (sessionId, description = "") => {
+    const response = await fetch(`${BACKEND_URL}/api/session/${sessionId}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description })
+    });
+    
+    if (!response.ok) throw new Error("Failed to analyze description");
+    
+    return await response.json();
   }
 };
