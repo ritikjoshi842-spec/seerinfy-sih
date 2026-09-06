@@ -2,20 +2,16 @@
 """
 Serenify Audio Pipeline -- Production CLI Wrapper with Speech-Aware Chunked ASR
 
-This is the production CLI interface for Serenify. It performs acoustic signal
-normalization, extracts clinical biomarkers over the full original recording,
-and handles long-form speech transcription via speech-aware chunking (~15s)
-to prevent IndicConformer degradation observed on long continuous audio.
+Yeh Serenify ka main CLI tool hai[cite: 1]. Iska kaam hai:
+1. Pure audio ka volume normalize karna aur clinical biomarkers nikalna[cite: 2].
+2. Lambi recordings ko ~15-second ke speech-aware tukdo (chunks) mein todkar
+   transcribe karna, taaki IndicConformer model fail ya degrade na ho.
 
-Key Production Characteristics:
-1. Biomarker Integrity: Acoustic biomarkers (response latency, hesitation pauses,
-   speaking duration) are computed exclusively on the full un-chunked audio.
-2. Speech-Aware Chunking: Chunks target ~15 seconds and are bounded at natural
-   silence/pause points (>= 300 ms) to preserve phonetic and linguistic context.
-3. Model Reuse: The loaded IndicConformer ASR model is cached and reused across
-   all chunk inferences via AudioAssessmentPipeline.transcribe().
-4. Output Contract: Produces the exact Serenify JSON contract with no chunk
-   metadata or internal benchmark artifacts exposed downstream.
+Main Features:
+1. Biomarkers pure original audio se hi calculate hote hain (chunking se pehle)[cite: 2].
+2. Chunks ko natural pauses (halka silence >= 300ms) par kaata jata hai taaki koi shabd beech mein na kate.
+3. IndicConformer model ek hi baar load hota hai aur har chunk ke liye reuse hota hai[cite: 2].
+4. Output bilkul clean JSON contract deta hai, bina kisi extra debugging info ke[cite: 1, 2].
 """
 
 import argparse
@@ -31,7 +27,7 @@ from typing import List, Tuple
 import soundfile as sf
 import torch
 
-# Ensure sibling import resolves correctly regardless of execution directory
+# Agar script kisi aur folder se chalayi jaye, toh bhi audio_pipeline import ho sake
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audio_pipeline import AudioAssessmentPipeline
 
@@ -39,10 +35,9 @@ from audio_pipeline import AudioAssessmentPipeline
 @contextlib.contextmanager
 def suppress_all_output_unless_error(log_path: str):
     """
-    Redirects stdout and stderr at the operating-system file-descriptor level.
-    This catches low-level C++/CUDA logs, NeMo engine diagnostics, and tqdm
-    progress bars. If an uncaught exception occurs, the captured log is dumped
-    to the terminal before propagating.
+    Terminal par aane wale faltu background logs, progress bars aur NeMo ke
+    technical messages ko chupata hai[cite: 1]. Agar koi error aati hai, tabhi
+    saare logs screen par print karta hai debugging ke liye[cite: 1].
     """
     stdout_fd = sys.stdout.fileno()
     stderr_fd = sys.stderr.fileno()
@@ -57,10 +52,10 @@ def suppress_all_output_unless_error(log_path: str):
         except Exception:
             os.dup2(saved_stdout_fd, stdout_fd)
             os.dup2(saved_stderr_fd, stderr_fd)
-            print("\n--- An error occurred. Captured diagnostic log: ---\n")
+            print("\n--- Error aa gaya! Diagnostic logs neeche hain: ---\n")
             with open(log_path, "r", encoding="utf-8") as f:
                 print(f.read())
-            print("--- End of diagnostic log ---\n")
+            print("--- Diagnostic log khatam ---\n")
             raise
         finally:
             os.dup2(saved_stdout_fd, stdout_fd)
@@ -77,9 +72,8 @@ class ProductionChunkedProcessor:
         max_chunk_sec: float = 26.0,
     ):
         """
-        Initializes processor with empirically verified 15-second target chunking.
-        The underlying AudioAssessmentPipeline handles model loading, caching,
-        and CTC -> RNNT fallback mechanisms.
+        Chunking settings set karta hai. Target chunk size lagbhag 15 seconds hai,
+        jo experiments mein sabse accurate sabit hua hai.
         """
         self.pipeline = AudioAssessmentPipeline()
         self.target_chunk_sec = target_chunk_sec
@@ -95,9 +89,9 @@ class ProductionChunkedProcessor:
         min_pause_ms: float = 300.0,
     ) -> List[float]:
         """
-        Detects midpoints of natural pauses (>= 300 ms) using adaptive RMS energy.
-        Note: This 300 ms threshold is used strictly for locating safe segmentation
-        boundaries, distinct from the 750 ms hesitation-pause biomarker.
+        Audio mein natural gaps ya pauses (>= 300ms) dhoondhta hai taaki audio ko
+        wahan se kaata ja sake jahan speaker bolna thoda sa roke.
+        (Note: Yeh 300ms sirf cutting ke liye hai, 750ms wale hesitation biomarker se alag hai)[cite: 2].
         """
         frame_size = int(sr * frame_ms / 1000)
         num_frames = waveform.shape[1] // frame_size
@@ -108,6 +102,7 @@ class ProductionChunkedProcessor:
         frames = trimmed.reshape(num_frames, frame_size)
         frame_rms = torch.sqrt((frames ** 2).mean(dim=1))
 
+        # Audio ke shuruati shant hisse se baseline silence level tay hota hai
         baseline_frames = min(max(1, int(baseline_ms / frame_ms)), num_frames)
         baseline_rms = frame_rms[:baseline_frames].mean()
         threshold = torch.clamp(baseline_rms * 3.0, min=0.01)
@@ -126,6 +121,7 @@ class ProductionChunkedProcessor:
                 current_silence += 1
             else:
                 if current_silence >= min_pause_frames:
+                    # Pause ke theek beech wale point ko cutting point banate hain
                     mid_frame = silence_start + (current_silence // 2)
                     pause_midpoints.append(mid_frame * frame_size / sr)
                 current_silence = 0
@@ -142,8 +138,8 @@ class ProductionChunkedProcessor:
         candidate_cut_points: List[float],
     ) -> List[Tuple[float, float]]:
         """
-        Calculates chunk start and end boundaries, favoring nearby natural
-        pauses over cutting through continuous speech.
+        Target ~15 seconds ko dhyan mein rakh kar chunks decide karta hai.
+        Koshish rehti hai ki cut kisi pause par lage, na ki bolte hue shabd ke beech mein.
         """
         if total_duration_sec <= self.max_chunk_sec:
             return [(0.0, round(total_duration_sec, 3))]
@@ -161,10 +157,13 @@ class ProductionChunkedProcessor:
             min_cut = current_start + self.min_chunk_sec
             max_cut = current_start + self.max_chunk_sec
 
+            # Allowed window (10s se 26s ke beech) mein pauses dhoondo
             valid_cuts = [pt for pt in candidate_cut_points if min_cut <= pt <= max_cut]
             if valid_cuts:
+                # 15s ke sabse kareeb wala pause select karo
                 chosen = min(valid_cuts, key=lambda pt: abs(pt - ideal))
             else:
+                # Agar koi pause nahi mila, toh zabardasti target par cut karo
                 chosen = min(ideal, total_duration_sec)
 
             chunks.append((round(current_start, 3), round(chosen, 3)))
@@ -179,15 +178,15 @@ class ProductionChunkedProcessor:
         patient_id: str,
     ) -> dict:
         """
-        Executes end-to-end assessment:
-        1. Full acoustic normalization and clinical biomarker extraction.
-        2. Language routing (scheduled vs. tribal/unsupported).
-        3. Speech-aware chunking and transcription across cached ASR models.
-        4. Consolidated JSON output assembly.
+        Pura end-to-end processing:
+        1. Audio normalize karo aur pure audio ke biomarkers nikalo[cite: 2].
+        2. Language check karo (ASR support karti hai ya acoustic-only hai)[cite: 2].
+        3. Audio ko 15s ke tukdo mein baanto aur sequential transcribe karo[cite: 2].
+        4. Saare tukdo ko jod kar final standard JSON banao[cite: 1, 2].
         """
         timestamp = datetime.now(timezone.utc).isoformat()
 
-        # Step 1: Audio Loading & Ingestion
+        # Step 1: Audio file load aur volume normal level par lao[cite: 2]
         try:
             waveform, sr = self.pipeline.normalize_audio(audio_path)
         except Exception as e:
@@ -198,10 +197,10 @@ class ProductionChunkedProcessor:
                 "error_message": f"Could not load or process audio file: {e}",
             }
 
-        # Step 2: Acoustic Analysis on Full Recording (never chunked)
+        # Step 2: PURE audio se biomarkers calculate karo (chunks mein nahi batna chahiye)[cite: 2]
         acoustics = self.pipeline.extract_acoustic_biomarkers(waveform, sr)
 
-        # Handle silent / non-responsive sessions safely
+        # Agar recording mein koi aawaz hi nahi aayi toh gracefully handle karo[cite: 2]
         if not acoustics["speech_detected"]:
             return {
                 "status": "no_speech_detected",
@@ -222,12 +221,12 @@ class ProductionChunkedProcessor:
                 },
             }
 
-        # Step 3: Canonical Language Routing
+        # Step 3: Check karo ki language ASR support karti hai ya tribal/unsupported hai[cite: 2]
         routing = self.pipeline.route_language(patient_lang_code)
         lang = routing["language"]
         branch = routing["branch"]
 
-        # Unsupported or tribal dialects bypass ASR gracefully
+        # Agar tribal ya unsupported dialect hai, toh sirf acoustic biomarkers bhejenge[cite: 2]
         if branch != "scheduled":
             return {
                 "status": "success",
@@ -248,7 +247,7 @@ class ProductionChunkedProcessor:
                 },
             }
 
-        # Step 4: Speech-Aware Chunking & Sequential Transcription
+        # Step 4: Audio ko 15-second ke tukdo mein baanto
         total_duration_sec = waveform.shape[1] / sr
         candidate_cuts = self._find_candidate_cut_points(waveform, sr)
         planned_windows = self._plan_chunks(total_duration_sec, candidate_cuts)
@@ -270,16 +269,16 @@ class ProductionChunkedProcessor:
                     subtype="PCM_16",
                 )
 
-                # pipeline.transcribe handles model caching & CTC -> RNNT fallback
+                # pipeline.transcribe khud model cache sambhalta hai aur fallback handle karta hai[cite: 2]
                 chunk_text = self.pipeline.transcribe(chunk_file, lang)
 
-                # Filter out [STUB] placeholders and empty outputs
+                # Agar NeMo missing hai toh [STUB] aayega, use ignore karo aur sirf real text rakho[cite: 2]
                 if chunk_text and not chunk_text.startswith("[STUB]"):
                     cleaned = chunk_text.strip()
                     if cleaned:
                         assembled_chunks.append(cleaned)
 
-        # Step 5: Linguistic Data Assembly
+        # Step 5: Saare tukdo ka text jodkar ek final transcript aur word count banao
         if assembled_chunks:
             full_transcript = " ".join(assembled_chunks).strip()
             word_count = len(full_transcript.split())
@@ -289,6 +288,7 @@ class ProductionChunkedProcessor:
             word_count = None
             transcription_available = False
 
+        # Final standardized JSON jo team ke backend aur NLP model ke pass jayega[cite: 1, 2]
         return {
             "status": "success",
             "patient_id": patient_id,
@@ -310,6 +310,7 @@ class ProductionChunkedProcessor:
 
 
 def main():
+    # CLI arguments setup: bina terminal ko confuse kiye simple flags provide karta hai[cite: 1]
     parser = argparse.ArgumentParser(
         description="Run the Serenify audio pipeline and save a clean JSON result."
     )
@@ -329,6 +330,7 @@ def main():
 
     processor = ProductionChunkedProcessor(target_chunk_sec=15.0)
 
+    # Verbose mode mein logs screen par aayenge, normal mode mein logs hide rahenge[cite: 1]
     if args.verbose:
         result = processor.process_audio(
             audio_path=args.audio,
@@ -349,11 +351,12 @@ def main():
             if os.path.exists(log_path):
                 os.remove(log_path)
 
+    # Output ko output file (jaise result.json) mein save karo[cite: 1]
     with open(args.output, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
     status = result.get("status", "unknown")
-    print(f"[OK] Analysis complete (status: {status}) -> {args.output}")
+    print(f"✓ Analysis complete (status: {status}) -> {args.output}")
 
 
 if __name__ == "__main__":
