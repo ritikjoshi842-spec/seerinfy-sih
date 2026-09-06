@@ -74,7 +74,7 @@ export function ProgressDashboard() {
                 { label: 'Streak', value: monthly.streak, icon: <Flame size={24} />, color: '#738A7A', bg: '#F0F4F1', unit: ' days' },
                 { label: 'Focus', value: `+${monthly.focusChange}`, icon: <TrendingUp size={24} />, color: '#2C4233', bg: '#E6EBE7', unit: '%' },
                 { label: 'Memory', value: `+${monthly.memoryChange}`, icon: <Star size={24} />, color: '#B3925B', bg: '#FDFBF7', unit: '%' },
-              ].map((stat, i) => (
+              ].map((stat, _i) => (
                 <Card key={stat.label} className="p-8 flex items-center gap-6 border-none shadow-[0_8px_32px_rgba(26,28,27,0.03)] bg-white"
                   style={{ animationDelay: `${i * 0.1}s` }}>
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-[#EAE8E3]" style={{ background: stat.bg, color: stat.color }}>
@@ -144,7 +144,7 @@ export function ProgressDashboard() {
               Achievements
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {BADGES.map((badge, i) => (
+              {BADGES.map((badge, _i) => (
                 <Card
                   key={badge.label}
                   className={`p-8 flex flex-col items-center text-center gap-5 border-none shadow-[0_8px_24px_rgba(26,28,27,0.03)] bg-white
@@ -184,7 +184,7 @@ export function ProgressDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {history.map((row, i) => (
+                    {history.map((row, _i) => (
                       <tr key={row.id} className={`border-b border-[#EAE8E3] last:border-0 hover:bg-[#FDFBF7] transition-colors`}>
                         <td className="px-8 py-6 text-[#1A1C1B] text-base font-semibold">{row.date}</td>
                         <td className="px-8 py-6 text-[#767A77] text-base font-medium flex items-center gap-2">

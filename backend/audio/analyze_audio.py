@@ -111,7 +111,7 @@ def main():
         json.dump(result, f, ensure_ascii=False, indent=2)
 
     status = result.get("status", "unknown")
-    print(f"✓ Analysis complete (status: {status}) -> {args.output}")
+    print(f"[OK] Analysis complete (status: {status}) -> {args.output}")
 
 
 if __name__ == "__main__":
