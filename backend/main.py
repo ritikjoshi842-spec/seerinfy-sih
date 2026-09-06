@@ -246,3 +246,53 @@ async def get_session_debug(session_id: str):
         "category_index": session["category_index"],
         "descriptions_recorded": len(session.get("descriptions", [])),
     }
+
+from fastapi import UploadFile, File, Form
+
+@app.post("/api/audio/analyze")
+async def analyze_audio_endpoint(
+    audio: UploadFile = File(...),
+    patient_id: str = Form(...),
+    language: str = Form(...)
+):
+    """
+    Optional audio analysis endpoint.
+    Dynamically loads heavy ML dependencies (PyTorch, NeMo, etc.) only when called.
+    If dependencies are missing (e.g. in a lightweight cloud deployment), gracefully returns 503.
+    """
+    import sys
+    import tempfile
+    
+    # 1. Safely attempt to load the audio pipeline
+    try:
+        audio_dir = os.path.join(os.path.dirname(__file__), "audio")
+        if audio_dir not in sys.path:
+            sys.path.insert(0, audio_dir)
+            
+        from audio_pipeline import AudioAssessmentPipeline
+    except ImportError as e:
+        logger.error(f"Audio processing dependencies not available: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="Audio analysis model is not available in this environment. Heavy dependencies are not installed."
+        )
+
+    # 2. Save uploaded file to a temporary location for the pipeline
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        tmp.write(await audio.read())
+        tmp_path = tmp.name
+
+    # 3. Process the audio
+    try:
+        pipeline = AudioAssessmentPipeline()
+        result = pipeline.process(tmp_path, language, patient_id=patient_id)
+        return result
+    except Exception as e:
+        logger.error(f"Audio processing failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred while processing the audio: {str(e)}"
+        )
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
