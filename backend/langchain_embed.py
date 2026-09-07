@@ -3,12 +3,11 @@ from main import PatientProfile,DescriptionPayload,ImageResponse,fetch_unsplash_
 from langchain_core.tools import tool
 from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEndpoint,ChatHuggingFace
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 from langchain_core.prompts import PromptTemplate,ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda
 
 import json
-import spacy
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser,JsonOutputParser
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -18,11 +17,11 @@ from langchain_qdrant import QdrantVectorStore
 load_dotenv()
 
 
-HF_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+HF_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN") or os.getenv("HF_TOKEN")
 
 if not HF_TOKEN:
     raise RuntimeError(
-        "HUGGINGFACEHUB_API_TOKEN is missing. "
+        "HF_TOKEN is missing. "
         "Add it to your .env file."
     )
 
@@ -124,17 +123,14 @@ def load_json(file_path: str) -> dict:
 
     return data
 
-QDRANT_URL = "http://localhost:6333"
+QDRANT_URL = os.getenv("QDRANT_URL")
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = "patient_transcripts"
 
 
-embed_model = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
+embed_model = FastEmbedEmbeddings(
+    model_name="BAAI/bge-small-en-v1.5"
 )
-
-SPACY_MODEL = "en_core_web_sm"
-
-nlp= spacy.load(SPACY_MODEL)
 
 def extract_transcript(data: dict):
 
@@ -157,16 +153,9 @@ def extract_transcript(data: dict):
 
 
 def process_with_spacy(data: dict):
-
+    # Rewritten to not use the heavy spacy model!
     transcript = data["transcript"]
-
-    doc = nlp(transcript)
-
-    processed_text = " ".join(
-        token.text
-        for token in doc
-        if not token.is_space
-    )
+    processed_text = " ".join(transcript.split())
 
     return {
         **data,
@@ -226,7 +215,8 @@ def store_embeddings(documents):
         documents=documents,
         embedding=embed_model,
         collection_name=COLLECTION_NAME,
-        url=QDRANT_URL
+        url=QDRANT_URL,
+        api_key=QDRANT_API_KEY
     )
 
     return {
@@ -243,7 +233,8 @@ split_chain = RunnableLambda(split_document)
 qdrant_chain = RunnableLambda(store_embeddings)
 
 
-unsplash_chain = unsplash_query_prompt | model | parser1 | fetch_image_runnable
+generate_query_chain = unsplash_query_prompt | model | parser1
+unsplash_chain = generate_query_chain | fetch_image_runnable
 
 embeding_chain = extract_chain | spacy_chain | document_chain | split_chain | qdrant_chain
 
