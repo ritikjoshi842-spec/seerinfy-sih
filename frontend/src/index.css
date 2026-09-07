@@ -223,3 +223,22 @@ a {
   background: #E6EBE7;
   color: #2C4233;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SESSION LAYOUT
+   ═══════════════════════════════════════════════════════════ */
+.session-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+  .session-grid {
+    grid-template-columns: 5fr 7fr;
+    gap: 40px;
+  }
+}
