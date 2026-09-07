@@ -1,4 +1,4 @@
-﻿# Logs
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -7,40 +7,32 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node / frontend
-node_modules/
-dist/
-dist-ssr/
+# ──────────────────────────────────────────────────────
+# Frontend (React + Vite + Tailwind)
+# ──────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
 *.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea/
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Python
-__pycache__/
-*.py[cod]
-.pytest_cache/
-*.egg-info/
+# ──────────────────────────────────────────────────────
+# Backend (FastAPI + Python)
+# ──────────────────────────────────────────────────────
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/.pytest_cache/
+backend/*.egg-info/
 
 # Virtual environments
-venv/
-venv312/
-.venv/
+backend/.venv/
 
-# NeMo source checkout
-NeMo/
+# NeMo source checkout (large sub-repo)
+backend/NeMo/
 
 # Downloaded model files / checkpoints
-models/
-checkpoints/
+backend/models/
+backend/checkpoints/
 *.nemo
 *.ckpt
 *.pt
@@ -53,6 +45,14 @@ checkpoints/
 # Environment / secrets
 .env
 .env.*
+backend/.env
+backend/.env.*
+
+# Safe environment templates are documentation, not secrets.
+!.env.example
+!frontend/.env.example
+!frontend/.env.development.example
+!backend/.env.example
 
 # Local audio recordings
 *.mp3
@@ -63,7 +63,18 @@ my_recording*
 WhatsApp Audio*
 
 # Local pipeline outputs
-result*.json
+backend/result*.json
 *.safetensors
 *.bin
 *.onnx
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

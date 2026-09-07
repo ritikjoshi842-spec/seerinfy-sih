@@ -33,14 +33,26 @@ export function Footer() {
               Quick Links
             </h4>
             <ul className="flex flex-col gap-5 list-none">
-              {['About Alzheimer\'s', 'How it Works', 'Games', 'FAQ', 'Contact Us'].map(item => (
-                <li key={item}>
-                  <Link
-                    to="#"
-                    className="text-white/50 hover:text-white text-sm no-underline transition-colors duration-300"
-                  >
-                    {item}
-                  </Link>
+              {[
+                { label: 'How it Works', to: '/#how-it-works' },
+                { label: 'Games', to: '/#games' },
+                { label: 'Progress', to: null },
+                { label: 'FAQ', to: null },
+                { label: "About Alzheimer's", to: '/about' },
+              ].map(item => (
+                <li key={item.label}>
+                  {item.to ? (
+                    <Link
+                      to={item.to}
+                      className="text-white/50 hover:text-white text-sm no-underline transition-colors duration-300"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <span className="text-white/50 text-sm cursor-default select-none">
+                      {item.label}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -66,7 +78,7 @@ export function Footer() {
               <ul className="flex flex-col gap-4 list-none">
                 {['Blog', 'Research', 'Caregivers Guide'].map(item => (
                   <li key={item}>
-                    <Link to="#" className="text-white/50 hover:text-white text-sm no-underline transition-colors duration-300">{item}</Link>
+                    <span className="text-white/50 text-sm cursor-default select-none">{item}</span>
                   </li>
                 ))}
               </ul>

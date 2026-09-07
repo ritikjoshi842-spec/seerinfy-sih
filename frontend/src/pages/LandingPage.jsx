@@ -8,7 +8,6 @@ import { PageShell } from '../components/common/PageShell';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { SectionHeading } from '../components/common/SectionHeading';
-import { ProgressRing } from '../components/common/ProgressRing';
 
 // ─── Feature Tiles Data ──────────────────────────────────────────────────────
 const FEATURES = [
@@ -52,11 +51,11 @@ const STEPS = [
 
 // ─── Game Cards Data ──────────────────────────────────────────────────────────
 const GAMES = [
-  { title: 'Word Picture Match', desc: 'Connect words with images.', img: '/assets/game-word-picture.png' },
-  { title: 'Visual Memory', desc: 'Improve memory with picture sequences.', img: '/assets/game-visual-memory.png' },
-  { title: 'Focus & Attention', desc: 'Train your focus with fun challenges.', img: '/assets/game-focus-attention.png' },
-  { title: 'Pattern Explorer', desc: 'Recognize patterns and build thinking skills.', img: '/assets/game-pattern-explorer.png' },
-  { title: 'Sound to Image', desc: 'Link sounds with visual understanding.', img: '/assets/game-sound-to-image.png' },
+  { title: 'Visual Match', desc: 'Connect words and concepts with images.', img: '/assets/game-word-picture.png', isPlayable: true },
+  { title: 'Visual Memory', desc: 'Improve memory with picture sequences.', img: '/assets/game-visual-memory.png', isPlayable: false },
+  { title: 'Focus & Attention', desc: 'Train your focus with fun challenges.', img: '/assets/game-focus-attention.png', isPlayable: false },
+  { title: 'Pattern Explorer', desc: 'Recognize patterns and build thinking skills.', img: '/assets/game-pattern-explorer.png', isPlayable: false },
+  { title: 'Sound to Image', desc: 'Link sounds with visual understanding.', img: '/assets/game-sound-to-image.png', isPlayable: false },
 ];
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
@@ -77,7 +76,18 @@ function Hero() {
       <div className="absolute top-0 left-0 w-full h-[800px] pointer-events-none"
         style={{ background: 'linear-gradient(180deg, rgba(243,246,244,0.5) 0%, rgba(253,251,247,0) 100%)' }} />
 
-      <div className="content-wrap relative z-10 flex flex-col items-center text-center mt-48 lg:mt-[20rem]">
+      <div
+        className="content-wrap"
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          paddingTop: 'clamp(80px, 8vw, 100px)',
+        }}
+      >
 
         <h1
           className="font-bold text-[#1A1C1B] mb-8 animate-fadeInUp delay-100"
@@ -262,7 +272,15 @@ function HowItWorks() {
 function TherapyThroughVisuals() {
   const navigate = useNavigate();
   return (
-    <section style={{ background: '#FFFFFF', padding: '128px 0', borderTop: '1px solid #F2F0EB' }}>
+    <section
+      id="games"
+      style={{
+        background: '#FFFFFF',
+        padding: '128px 0',
+        borderTop: '1px solid #F2F0EB',
+        scrollMarginTop: '80px',
+      }}
+    >
       <div className="content-wrap">
         <SectionHeading
           label="THERAPY THROUGH VISUALS & PLAY"
@@ -273,28 +291,33 @@ function TherapyThroughVisuals() {
         />
 
         <div className="flex gap-8 overflow-x-auto pb-12 snap-x snap-mandatory scrollbar-hide">
-          {GAMES.map((game, _i) => (
-            <div
-              key={game.title}
-              className="flex-shrink-0 w-[280px] group cursor-pointer"
-              onClick={() => navigate('/session')}
-            >
-              <div className="rounded-[24px] overflow-hidden mb-6 relative border border-[#EAE8E3]" style={{ aspectRatio: '1/1' }}>
-                <img
-                  src={game.img}
-                  alt={game.title}
-                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
-                />
-                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-end p-5">
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md text-[#1A1C1B]">
-                    <ArrowRight size={20} />
-                  </div>
+          {GAMES.map((game, _i) => {
+            const isPlayable = Boolean(game.isPlayable);
+            return (
+              <div
+                key={game.title}
+                className={`flex-shrink-0 w-[280px] group ${isPlayable ? 'cursor-pointer' : 'cursor-default'}`}
+                onClick={isPlayable ? () => navigate('/session') : undefined}
+              >
+                <div className="rounded-[24px] overflow-hidden mb-6 relative border border-[#EAE8E3]" style={{ aspectRatio: '1/1' }}>
+                  <img
+                    src={game.img}
+                    alt={game.title}
+                    className={`w-full h-full object-cover ${isPlayable ? 'group-hover:scale-[1.03] transition-transform duration-500 ease-out' : ''}`}
+                  />
+                  {isPlayable && (
+                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-end p-5">
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md text-[#1A1C1B]">
+                        <ArrowRight size={20} />
+                      </div>
+                    </div>
+                  )}
                 </div>
+                <h3 className="font-semibold text-[#1A1C1B] text-lg mb-2" style={{ fontFamily: 'Poppins' }}>{game.title}</h3>
+                <p className="text-[#767A77] text-sm leading-relaxed">{game.desc}</p>
               </div>
-              <h3 className="font-semibold text-[#1A1C1B] text-lg mb-2" style={{ fontFamily: 'Poppins' }}>{game.title}</h3>
-              <p className="text-[#767A77] text-sm leading-relaxed">{game.desc}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -303,31 +326,38 @@ function TherapyThroughVisuals() {
 
 // ─── Progress Strip ───────────────────────────────────────────────────────────
 function ProgressStrip() {
+  const navigate = useNavigate();
   return (
-    <section style={{ background: '#FDFBF7', padding: '128px 0' }}>
+    <section style={{ background: '#FDFBF7', padding: '64px 0 80px' }}>
       <div className="content-wrap">
-        <Card className="flex flex-col lg:flex-row items-center justify-between gap-16 p-12 lg:p-16 border-none shadow-[0_8px_32px_rgba(26,28,27,0.03)] bg-white">
-          {/* Left: copy */}
-          <div className="max-w-md text-center lg:text-left">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-[16px] bg-[#F3F6F4] mb-8">
-              <Sparkles size={28} color="#4A6B53" />
+        <Card
+          padding={false}
+          className="flex flex-col lg:flex-row items-center justify-between gap-10 border border-[#EAE8E3] shadow-[0_12px_44px_rgba(26,28,27,0.05)] bg-white rounded-[32px] w-full"
+          style={{ padding: '72px 56px', minHeight: '220px' }}
+        >
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6">
+            <div className="w-14 h-14 rounded-2xl bg-[#F3F6F4] flex items-center justify-center shrink-0 shadow-sm">
+              <Sparkles size={24} color="#4A6B53" />
             </div>
-            <h3 className="font-bold text-[#1A1C1B] text-3xl mb-4" style={{ fontFamily: 'Poppins', lineHeight: 1.2 }}>
-              Track your cognitive journey visually.
-            </h3>
-            <p className="text-[#767A77] text-lg leading-relaxed mb-8">
-              Small steps lead to big changes. Watch your focus and memory improve through our intuitive progress dashboard.
-            </p>
-            <Button variant="secondary" size="lg">View Dashboard</Button>
+            <div className="max-w-xl">
+              <h3 className="font-bold text-[#1A1C1B] text-2xl mb-2" style={{ fontFamily: 'Poppins', lineHeight: 1.3 }}>
+                Track your cognitive journey visually.
+              </h3>
+              <p className="text-[#767A77] text-base leading-relaxed">
+                Small steps lead to big changes. Watch your focus and memory improve through our intuitive progress dashboard.
+              </p>
+            </div>
           </div>
 
-          {/* Right: visualization */}
-          <div className="flex flex-col items-center gap-6 p-8 rounded-[24px] bg-[#FDFBF7] border border-[#F2F0EB] w-full max-w-sm">
-            <ProgressRing percent={78} size={140} strokeWidth={12} color="#4A6B53" />
-            <div className="text-center mt-4">
-              <p className="font-semibold text-[#1A1C1B] text-lg" style={{ fontFamily: 'Poppins' }}>Focus & Attention</p>
-              <p className="text-[#738A7A] text-sm font-medium mt-1">▲ 18% improvement this month</p>
-            </div>
+          <div className="shrink-0 w-full sm:w-auto flex justify-center">
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => navigate('/progress')}
+              iconRight={<ArrowRight size={18} />}
+            >
+              View Dashboard
+            </Button>
           </div>
         </Card>
       </div>
@@ -376,6 +406,15 @@ function CTASection() {
 
 // ─── Landing Page ─────────────────────────────────────────────────────────────
 export function LandingPage() {
+  React.useEffect(() => {
+    if (window.location.hash) {
+      const target = document.getElementById(window.location.hash.slice(1));
+      if (target) {
+        setTimeout(() => target.scrollIntoView({ behavior: 'smooth' }), 120);
+      }
+    }
+  }, []);
+
   return (
     <PageShell>
       <Hero />

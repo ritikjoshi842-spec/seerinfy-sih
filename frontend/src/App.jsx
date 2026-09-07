@@ -5,6 +5,7 @@ import { LandingPage } from './pages/LandingPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { TherapySessionPage } from './pages/TherapySessionPage';
 import { ProgressDashboard } from './pages/ProgressDashboard';
+import { AboutAlzheimerPage } from './pages/AboutAlzheimerPage';
 
 function App() {
   return (
@@ -12,6 +13,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutAlzheimerPage />} />
+          <Route path="/about-alzheimer" element={<AboutAlzheimerPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/session" element={<TherapySessionPage />} />
           <Route path="/progress" element={<ProgressDashboard />} />

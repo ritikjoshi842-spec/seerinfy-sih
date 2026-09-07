@@ -1,241 +1,32 @@
-import os
-from main import PatientProfile,DescriptionPayload,ImageResponse,fetch_unsplash_photo
-from langchain_core.tools import tool
-from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEndpoint,ChatHuggingFace
-from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
-from langchain_core.prompts import PromptTemplate,ChatPromptTemplate
-from langchain_core.runnables import RunnableLambda
+"""Optional, lightweight Groq query generation for Unsplash searches.
 
-import json
-from langchain_core.documents import Document
-from langchain_core.output_parsers import StrOutputParser,JsonOutputParser
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from sentence_transformers import SentenceTransformer
-from langchain_qdrant import QdrantVectorStore
+This module is imported only by session routes. Keeping it focused avoids
+initializing embedding/Qdrant clients for an image-search request.
+"""
+
+import os
+
+from dotenv import load_dotenv
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_groq import ChatGroq
 
 load_dotenv()
 
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise RuntimeError("GROQ_API_KEY is missing.")
 
-HF_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN") or os.getenv("HF_TOKEN")
-
-if not HF_TOKEN:
-    raise RuntimeError(
-        "HF_TOKEN is missing. "
-        "Add it to your .env file."
-    )
-
-UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY")
-UNSPLASH_API_BASE = "https://api.unsplash.com"
-
-if not UNSPLASH_ACCESS_KEY:
-    raise RuntimeError(
-        "UNSPLASH_ACCESS_KEY is missing. Add it to your .env file before starting the server."
-    )
-
-
-parser1 = StrOutputParser()
-parser2 = JsonOutputParser()
-
-llm = HuggingFaceEndpoint(
-    repo_id = 'Qwen/Qwen3-4B-Instruct-2507',
-    huggingfacehub_api_token=HF_TOKEN,
-    task = 'text-generation',
-)
-print("creating model")
-model = ChatHuggingFace(llm=llm)
-
-#query for unspash api
 unsplash_query_prompt = ChatPromptTemplate.from_messages([
-    ("system","""You are an image-search query generator for a reminiscence therapy application.
-
-You will receive a patient's profile containing information such as:
-
-* hobbies
-* past activities
-* favorite places
-* life milestones
-
-Your task is to analyze the entire patient profile and generate ONE concise search query suitable for the Unsplash image-search API.
-
-Instructions:
-
-1. Identify the most meaningful and visually representable concept from the patient's profile.
-2. Prefer concrete subjects, activities, locations, objects, or scenes that can be represented by a photograph.
-3. Combine relevant information from multiple profile fields when doing so creates a more meaningful visual query.
-4. Prioritize personal interests and experiences over generic information.
-5. If a specific place is mentioned, include it when it would produce a useful visual search.
-6. If a hobby or past activity is mentioned, prefer the activity and its visual context.
-7. If a life milestone is mentioned, convert it into a visually representable scene.
-8. Do not include the patient's name, age, or other identifying information.
-9. Do not mention medical conditions or diagnoses in the query.
-10. Do not generate a question or sentence.
-11. Return ONLY the search query.
-12. Keep the query between 3 and 8 words.
-13. Use natural keywords that would work well for Unsplash.
-
-Example:
-
-Patient profile:
-Hobbies: ["fishing", "gardening"]
-Past activities: "Spent many weekends fishing with friends near the Ganges."
-Favorite places: ["Rishikesh"]
-Life milestones: "Moved to Rishikesh after retirement."
-
-Output:
-fishing friends river Rishikesh
-
-Another example:
-
-Patient profile:
-Hobbies: ["photography"]
-Past activities: "Used to take photographs during mountain trips."
-Favorite places: ["Manali"]
-Life milestones: "First family trip to the Himalayas."
-
-Output:
-family mountain photography Manali
-
-Now analyze the provided patient profile and return ONLY the best Unsplash search query.
-
-"""),
-("human","Patient profile:{profile} ,Generate the best Unsplash search query.")
+    (
+        "system",
+        """You generate one concise Unsplash photo-search query for a reminiscence
+therapy application. Use the most meaningful visual idea in the profile. Do
+not include names, ages, diagnoses, questions, or explanations. Return only
+3 to 8 natural search keywords.""",
+    ),
+    ("human", "Patient profile:\n{profile}"),
 ])
 
-async def search_unsplash(query: str) -> dict:
-    """Search Unsplash for an image matching the query."""
-    return await fetch_unsplash_photo(query)
-
-fetch_image_runnable = RunnableLambda(search_unsplash)
-
-#embedding pipeline
-
-JSON_FILE = "result.json"
-
-
-def load_json(file_path: str) -> dict:
-    """
-    Loads the transcript result JSON file and returns its data.
-    """
-
-    with open(file_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    return data
-
-QDRANT_URL = os.getenv("QDRANT_URL")
-QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-COLLECTION_NAME = "patient_transcripts"
-
-
-embed_model = FastEmbedEmbeddings(
-    model_name="BAAI/bge-small-en-v1.5"
-)
-
-def extract_transcript(data: dict):
-
-    transcript = data["linguistic_data"]["transcript"]
-
-    return {
-        "transcript": transcript,
-        "patient_id": data.get("patient_id"),
-        "timestamp": data.get("timestamp"),
-        "language": data.get("language"),
-        "acoustic_biomarkers": data.get(
-            "acoustic_biomarkers",
-            {}
-        ),
-        "linguistic_data": data.get(
-            "linguistic_data",
-            {}
-        )
-    }
-
-
-def process_with_spacy(data: dict):
-    # Rewritten to not use the heavy spacy model!
-    transcript = data["transcript"]
-    processed_text = " ".join(transcript.split())
-
-    return {
-        **data,
-        "processed_text": processed_text
-    }
-
-
-def create_document(data: dict):
-
-    acoustic = data["acoustic_biomarkers"]
-    linguistic = data["linguistic_data"]
-
-    document = Document(
-        page_content=data["processed_text"],
-
-        metadata={
-            "patient_id": data["patient_id"],
-            "timestamp": data["timestamp"],
-            "language": data["language"],
-
-            "response_latency_sec":
-                acoustic.get("response_latency_sec"),
-
-            "pause_count":
-                acoustic.get("pause_count"),
-
-            "total_pause_duration_sec":
-                acoustic.get("total_pause_duration_sec"),
-
-            "speaking_duration_sec":
-                acoustic.get("speaking_duration_sec"),
-
-            "pause_to_speech_ratio":
-                acoustic.get("pause_to_speech_ratio"),
-
-            "word_count":
-                linguistic.get("word_count")
-        }
-    )
-
-    return document
-
-
-def split_document(document: Document):
-
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50
-    )
-
-    return splitter.split_documents([document])
-
-
-def store_embeddings(documents):
-
-    QdrantVectorStore.from_documents(
-        documents=documents,
-        embedding=embed_model,
-        collection_name=COLLECTION_NAME,
-        url=QDRANT_URL,
-        api_key=QDRANT_API_KEY
-    )
-
-    return {
-        "status": "success",
-        "message": "Embeddings stored in Qdrant",
-        "chunks_stored": len(documents)
-    }
-
-
-extract_chain = RunnableLambda(extract_transcript)
-spacy_chain = RunnableLambda(process_with_spacy)
-document_chain = RunnableLambda(create_document)
-split_chain = RunnableLambda(split_document)
-qdrant_chain = RunnableLambda(store_embeddings)
-
-
-generate_query_chain = unsplash_query_prompt | model | parser1
-unsplash_chain = generate_query_chain | fetch_image_runnable
-
-embeding_chain = extract_chain | spacy_chain | document_chain | split_chain | qdrant_chain
-
-
+model = ChatGroq(model="gpt-oss-120b", temperature=0.7, api_key=GROQ_API_KEY)
+generate_query_chain = unsplash_query_prompt | model | StrOutputParser()

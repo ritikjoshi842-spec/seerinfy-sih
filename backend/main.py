@@ -38,16 +38,6 @@ UNSPLASH_API_BASE = "https://api.unsplash.com"
 
 
 
-if not UNSPLASH_ACCESS_KEY:
-
-    raise RuntimeError(
-
-        "UNSPLASH_ACCESS_KEY is missing. Add it to your .env file before starting the server."
-
-    )
-
-
-
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("sereenify-backend")
@@ -64,34 +54,26 @@ app = FastAPI(title="Sereenify Reminiscence Image Engine")
 
 
 
-ALLOWED_ORIGINS = [
-
+DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-
     "http://127.0.0.1:3000",
-
     "http://localhost:5173",
-
     "http://127.0.0.1:5173",
-
     "http://localhost:5174",
-
+    "https://sereenify-veltrixa.vercel.app",
 ]
 
-
+env_cors = os.getenv("CORS_ORIGINS", "")
+custom_origins = [o.strip() for o in env_cors.split(",") if o.strip()]
+ALLOWED_ORIGINS = list(dict.fromkeys(DEFAULT_ALLOWED_ORIGINS + custom_origins))
 
 app.add_middleware(
-
     CORSMiddleware,
-
     allow_origins=ALLOWED_ORIGINS,
-
-    allow_credentials=True,
-
+    allow_origin_regex=r"^https://sereenify-[a-zA-Z0-9_-]+\.vercel\.app$",
+    allow_credentials=False,
     allow_methods=["*"],
-
     allow_headers=["*"],
-
 )
 
 
@@ -263,6 +245,12 @@ def build_caption(category: str, query: str) -> str:
 # --------------------------------------------------------------------------
 
 async def fetch_unsplash_photo(query: str) -> dict:
+
+    if not UNSPLASH_ACCESS_KEY:
+
+        logger.error("UNSPLASH_ACCESS_KEY is not configured")
+
+        raise HTTPException(status_code=503, detail="Image service is not configured.")
 
     headers = {"Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}"}
 
@@ -655,10 +643,6 @@ async def analyze_audio_endpoint(
 
             os.remove(tmp_path)
 
-from scoring import analyze_description
-
-
-
 @app.post("/api/session/{session_id}/analyze")
 
 async def analyze_session_description(session_id: str, payload: DescriptionPayload):
@@ -678,6 +662,9 @@ async def analyze_session_description(session_id: str, payload: DescriptionPaylo
         
 
         # Analyze the description using the current image's query as the portfolio word
+
+        # Avoid loading the embedding model for health checks and image sessions.
+        from scoring import analyze_description
 
         analysis_result = analyze_description(payload.description or "", current_query)
 
