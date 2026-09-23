@@ -341,7 +341,15 @@ export function OnboardingPage() {
   const navigate = useNavigate();
 
   const handleProfileSubmit = (data) => {
-    updateSession({ profile: data, track: 'alzheimers' });
+    updateSession({
+      profile: data,
+      track: 'alzheimers',
+      backendSessionId: null,
+      currentImage: null,
+      imageIndex: 0,
+      response: '',
+      analysis: null
+    });
     navigate('/session');
   };
 

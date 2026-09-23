@@ -1,10 +1,21 @@
-const BACKEND_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://sereenify-qorvanta-api.vercel.app'))?.replace(/\/$/, '');
+const PROD_API_URL = 'https://sereenify-qorvanta-api.vercel.app';
+const PRIMARY_BACKEND_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : PROD_API_URL))?.replace(/\/$/, '');
 
-function getBackendUrl() {
-  if (!BACKEND_URL) {
-    throw new Error('VITE_API_URL is not configured. Set VITE_API_URL in your environment (e.g. https://sereenify-qorvanta-api.vercel.app in production or http://localhost:8000 in development).');
+async function apiFetch(path, options = {}) {
+  try {
+    const res = await fetch(`${PRIMARY_BACKEND_URL}${path}`, options);
+    if (!res.ok && res.status >= 500 && PRIMARY_BACKEND_URL !== PROD_API_URL) {
+      console.warn(`Local backend returned ${res.status}, failing over to production API: ${PROD_API_URL}`);
+      return await fetch(`${PROD_API_URL}${path}`, options);
+    }
+    return res;
+  } catch (err) {
+    if (PRIMARY_BACKEND_URL !== PROD_API_URL) {
+      console.warn(`Local backend at ${PRIMARY_BACKEND_URL} unreachable (${err.message}), failing over to production API: ${PROD_API_URL}`);
+      return await fetch(`${PROD_API_URL}${path}`, options);
+    }
+    throw err;
   }
-  return BACKEND_URL;
 }
 
 export const imageService = {
@@ -30,7 +41,7 @@ export const imageService = {
       life_milestones: profile.life_milestones || ""
     };
     
-    const response = await fetch(`${getBackendUrl()}/api/session/start`, {
+    const response = await apiFetch(`/api/session/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -45,7 +56,7 @@ export const imageService = {
   },
   
   nextImage: async (sessionId, description = "") => {
-    const response = await fetch(`${getBackendUrl()}/api/session/${sessionId}/next`, {
+    const response = await apiFetch(`/api/session/${sessionId}/next`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ description })
@@ -60,7 +71,7 @@ export const imageService = {
   },
   
   analyzeDescription: async (sessionId, description = "") => {
-    const response = await fetch(`${getBackendUrl()}/api/session/${sessionId}/analyze`, {
+    const response = await apiFetch(`/api/session/${sessionId}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ description })

@@ -334,7 +334,12 @@ function SparklesIcon(props) {
 export function TherapySessionPage() {
   const { session, updateSession } = useSession();
   const navigate = useNavigate();
-  const [image, setImage] = useState(session.currentImage || null);
+  const [image, setImage] = useState(() => {
+    if (session.currentImage?.url === '/assets/game-visual-match.jpg') {
+      return null;
+    }
+    return session.currentImage || null;
+  });
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState(session.analysis || null);
   const [sessionCount, setSessionCount] = useState((session.imageIndex || 0) + 1);
@@ -355,10 +360,12 @@ export function TherapySessionPage() {
     if (((session.imageIndex || 0) === 0 && !session.backendSessionId) || isMockFallback) {
       imageService.startSession(session.profile || {}).then(data => {
         if (!isMounted) return;
-        updateSession({ backendSessionId: data.session_id });
         const imgData = mapBackendImage(data);
         setImage(imgData);
-        updateSession({ currentImage: imgData });
+        updateSession({
+          backendSessionId: data.session_id,
+          currentImage: imgData
+        });
       }).catch(err => {
         console.error("Backend session start failed, falling back to mock:", err);
         if (!isMounted) return;

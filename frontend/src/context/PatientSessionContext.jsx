@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const PatientSessionContext = createContext(null);
 
@@ -30,10 +30,21 @@ export function PatientSessionProvider({ children }) {
     }
   }, [session]);
 
-  const updateSession = (patch) => setSession(prev => ({ ...prev, ...patch }));
+  const updateSession = useCallback((patch) => {
+    setSession(prev => ({ ...prev, ...patch }));
+  }, []);
+
+  const resetSession = useCallback(() => {
+    try {
+      sessionStorage.removeItem('serenify_session');
+    } catch {
+      // ignore
+    }
+    setSession(DEFAULT_SESSION);
+  }, []);
 
   return (
-    <PatientSessionContext.Provider value={{ session, updateSession }}>
+    <PatientSessionContext.Provider value={{ session, updateSession, resetSession }}>
       {children}
     </PatientSessionContext.Provider>
   );

@@ -8,6 +8,7 @@ import { PageShell } from '../components/common/PageShell';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { SectionHeading } from '../components/common/SectionHeading';
+import { useSession } from '../context/PatientSessionContext';
 
 // ─── Feature Tiles Data ──────────────────────────────────────────────────────
 const FEATURES = [
@@ -271,6 +272,7 @@ function HowItWorks() {
 // ─── Therapy Through Visuals ──────────────────────────────────────────────────
 function TherapyThroughVisuals() {
   const navigate = useNavigate();
+  const { updateSession } = useSession();
   return (
     <section
       id="games"
@@ -297,7 +299,16 @@ function TherapyThroughVisuals() {
               <div
                 key={game.title}
                 className={`flex-shrink-0 w-[280px] group ${isPlayable ? 'cursor-pointer' : 'cursor-default'}`}
-                onClick={isPlayable ? () => navigate('/session') : undefined}
+                onClick={isPlayable ? () => {
+                  updateSession({
+                    backendSessionId: null,
+                    currentImage: null,
+                    imageIndex: 0,
+                    response: '',
+                    analysis: null
+                  });
+                  navigate('/session');
+                } : undefined}
               >
                 <div className="rounded-[24px] overflow-hidden mb-6 relative border border-[#EAE8E3]" style={{ aspectRatio: '1/1' }}>
                   <img
