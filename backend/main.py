@@ -381,10 +381,10 @@ def photo_to_response(photo: dict, category: str, caption: str, session_id: str,
 # --------------------------------------------------------------------------
 
 @app.get("/api/health")
-
+@app.get("/health")
+@app.get("/")
 async def health():
-
-    return {"status": "ok"}
+    return {"status": "ok", "app": "Sereenify Reminiscence Engine"}
 
 
 
@@ -454,10 +454,16 @@ async def next_image(session_id: str, payload: DescriptionPayload):
     try:
 
         session = SESSIONS.get(session_id)
-
         if not session:
-
-            raise HTTPException(status_code=404, detail="Session not found. Start a new session.")
+            logger.warning(f"Session {session_id} not found in memory (serverless cold start). Re-initializing session state.")
+            session = {
+                "profile": PatientProfile(full_name="Patient", age=60, hobbies=["gardening"], past_activities="family and work", favorite_places=["peaceful nature"]),
+                "cursor": {"hobby_idx": 0, "place_idx": 0},
+                "category_index": 0,
+                "step": 1,
+                "current_query": "cherished memory"
+            }
+            SESSIONS[session_id] = session
 
 
 
@@ -650,14 +656,7 @@ async def analyze_session_description(session_id: str, payload: DescriptionPaylo
     try:
 
         session = SESSIONS.get(session_id)
-
-        if not session:
-
-            raise HTTPException(status_code=404, detail="Session not found.")
-
-            
-
-        current_query = session.get("current_query", "cherished memory")
+        current_query = session.get("current_query", "cherished memory") if session else "cherished memory"
 
         
 

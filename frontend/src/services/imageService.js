@@ -1,4 +1,4 @@
-const BACKEND_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : ''))?.replace(/\/$/, '');
+const BACKEND_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://sereenify-qorvanta-api.vercel.app'))?.replace(/\/$/, '');
 
 function getBackendUrl() {
   if (!BACKEND_URL) {
