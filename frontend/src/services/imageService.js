@@ -1,5 +1,5 @@
 const PROD_API_URL = 'https://sereenify-qorvanta-api.vercel.app';
-const PRIMARY_BACKEND_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : PROD_API_URL))?.replace(/\/$/, '');
+const PRIMARY_BACKEND_URL = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : PROD_API_URL))?.replace(/\/$/, '');
 
 async function apiFetch(path, options = {}) {
   try {
@@ -69,7 +69,21 @@ export const imageService = {
     
     return await response.json();
   },
-  
+
+  fallbackImage: async (sessionId) => {
+    const response = await apiFetch(`/api/session/${sessionId}/image-fallback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      throw new Error(`Failed to get fallback image (${response.status}): ${errorText}`);
+    }
+
+    return await response.json();
+  },
+
   analyzeDescription: async (sessionId, description = "") => {
     const response = await apiFetch(`/api/session/${sessionId}/analyze`, {
       method: 'POST',
@@ -79,7 +93,16 @@ export const imageService = {
     
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
-      throw new Error(`Failed to analyze description (${response.status}): ${errorText}`);
+      let errorData = null;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        // Non-JSON response
+      }
+      const err = new Error(errorData?.detail || `Failed to analyze description (${response.status})`);
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
     }
     
     return await response.json();

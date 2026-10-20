@@ -1,0 +1,96 @@
+{
+  "generated_at": "2026-10-20T07:45:18.231637+00:00",
+  "source_type": "fallback",
+  "sources": [
+    {
+      "title": "Utilising speech-derived biomarkers to detect Alzheimer's disease with BERT-based language models: a machine learning study",
+      "url": "https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2026.1875702/full"
+    },
+    {
+      "title": "Communication Difficulties as a Result of Dementia - PMC",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6195406/"
+    },
+    {
+      "title": "10 Early Signs and Symptoms of Alzheimer's & Dementia",
+      "url": "https://www.alz.org/alzheimers-dementia/10_signs"
+    },
+    {
+      "title": "Subtle changes in speech are associated with early signs of ...",
+      "url": "https://www.nia.nih.gov/news/subtle-changes-speech-are-associated-early-signs-alzheimers-disease-brain"
+    }
+  ],
+  "indicators": [
+    {
+      "id": "slowed_speech_rate",
+      "name": "Slowed Speech Rate",
+      "description": "Speaking at a reduced speed compared to typical conversation.",
+      "in_picture_description": "Describes the photo slowly, with drawn‑out words and noticeable lag between ideas.",
+      "source_urls": [
+        "https://www.nia.nih.gov/news/subtle-changes-speech-are-associated-early-signs-alzheimers-disease-brain",
+        "https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2026.1875702/full"
+      ]
+    },
+    {
+      "id": "increased_pauses",
+      "name": "Increased Pause Frequency",
+      "description": "More frequent and longer pauses interrupting the flow of speech.",
+      "in_picture_description": "Their description contains gaps like \"... a ... garden ...\" indicating frequent pauses.",
+      "source_urls": [
+        "https://www.nia.nih.gov/news/subtle-changes-speech-are-associated-early-signs-alzheimers-disease-brain"
+      ]
+    },
+    {
+      "id": "word_finding_difficulty",
+      "name": "Word‑Finding Difficulty",
+      "description": "Trouble retrieving specific nouns, leading to vague or generic terms.",
+      "in_picture_description": "Uses \"thing\" or \"object\" instead of naming the vase or lamp in the picture.",
+      "source_urls": [
+        "https://www.nia.nih.gov/news/subtle-changes-speech-are-associated-early-signs-alzheimers-disease-brain",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC6195406/"
+      ]
+    },
+    {
+      "id": "repetitive_responses",
+      "name": "Repetitive Responses",
+      "description": "Repeats questions or phrases within the same description.",
+      "in_picture_description": "Says \"What is that? What is that?\" while trying to identify a chair.",
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC6195406/",
+        "https://www.nia.nih.gov/news/subtle-changes-speech-are-associated-early-signs-alzheimers-disease-brain"
+      ]
+    },
+    {
+      "id": "semantic_impairment",
+      "name": "Semantic Impairment",
+      "description": "Uses imprecise or incorrect meanings, mixing up object categories.",
+      "in_picture_description": "Calls a sofa a \"bed\" or a cat a \"dog\" in the scene.",
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC6195406/"
+      ]
+    },
+    {
+      "id": "reduced_verbal_expression",
+      "name": "Reduced Verbal Expression",
+      "description": "Provides short, fragmented sentences with limited detail.",
+      "in_picture_description": "Says only \"Man, tree, house\" without further description.",
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC6195406/"
+      ]
+    },
+    {
+      "id": "preserved_syntax_phonology",
+      "name": "Preserved Syntax and Phonology",
+      "description": "Grammar remains correct while content is sparse or inaccurate.",
+      "in_picture_description": "Produces well‑formed sentences like \"The woman stands near the window\" but omits key objects.",
+      "source_urls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC6195406/"
+      ]
+    }
+  ],
+  "caveats": [
+    "These patterns can also occur as part of normal ageing and are not specific to dementia.",
+    "Fatigue, stress, or medication side‑effects may produce similar speech changes.",
+    "Variations in language proficiency, accent, or dialect can influence these communication features.",
+    "Hearing or vision impairments may affect how a person describes visual scenes."
+  ]
+}

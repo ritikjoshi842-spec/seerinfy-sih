@@ -1,58 +1,44 @@
 import os
-
 import random
-
 import uuid
-
 import logging
-
+import asyncio
 from typing import List, Optional, Dict
-
-
+from contextlib import asynccontextmanager
 
 import httpx
-
 from fastapi import FastAPI, HTTPException
-
 from fastapi.middleware.cors import CORSMiddleware
-
 from pydantic import BaseModel
-
 from dotenv import load_dotenv
 
-
-
 # --------------------------------------------------------------------------
-
 # 1. Environment & logging
-
 # --------------------------------------------------------------------------
-
 load_dotenv()
 
-
-
 UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY")
-
 UNSPLASH_API_BASE = "https://api.unsplash.com"
 
-
-
 logging.basicConfig(level=logging.INFO)
-
 logger = logging.getLogger("sereenify-backend")
 
 
-
 # --------------------------------------------------------------------------
-
-# 2. FastAPI app + CORS (must come before any routes)
-
+# 2. FastAPI app + Lifespan + CORS (must come before any routes)
 # --------------------------------------------------------------------------
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Non-blocking warm-up of research brief in background
+    try:
+        from scoring.research import get_brief
+        asyncio.create_task(get_brief())
+    except Exception as e:
+        logger.warning(f"Could not initialize research brief at startup: {e}")
+    yield
 
-app = FastAPI(title="Sereenify Reminiscence Image Engine")
 
-
+app = FastAPI(title="Sereenify Reminiscence Image Engine", lifespan=lifespan)
 
 DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -60,17 +46,19 @@ DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
+    "http://127.0.0.1:5174",
     "https://sereenify-veltrixa.vercel.app",
 ]
 
-env_cors = os.getenv("CORS_ORIGINS", "")
+env_cors = os.getenv("FRONTEND_ORIGINS") or os.getenv("CORS_ORIGINS", "")
 custom_origins = [o.strip() for o in env_cors.split(",") if o.strip()]
 ALLOWED_ORIGINS = list(dict.fromkeys(DEFAULT_ALLOWED_ORIGINS + custom_origins))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"^https:\/\/.*\.vercel\.app$",
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -106,24 +94,20 @@ class DescriptionPayload(BaseModel):
 
 
 class ImageResponse(BaseModel):
-
     session_id: str
-
     image_url: str
-
     photographer_name: str
-
     photographer_profile_url: str
-
     unsplash_link: str
-
     category: str
-
     caption: str
-
     step: int
-
     is_last_in_cycle: bool
+    provider: Optional[str] = "tinyfish"
+    fallback_image_url: Optional[str] = None
+    fallback_photographer_name: Optional[str] = None
+    fallback_photographer_url: Optional[str] = None
+    fallback_unsplash_link: Optional[str] = None
 
 
 
@@ -348,35 +332,48 @@ async def trigger_download_event(photo: dict) -> None:
 
 
 def photo_to_response(photo: dict, category: str, caption: str, session_id: str, step: int, is_last: bool) -> ImageResponse:
-
     return ImageResponse(
-
         session_id=session_id,
-
         image_url=photo["urls"]["regular"],
-
         photographer_name=photo["user"]["name"],
-
         photographer_profile_url=f'{photo["user"]["links"]["html"]}?utm_source=sereenify&utm_medium=referral',
-
         unsplash_link="https://unsplash.com/?utm_source=sereenify&utm_medium=referral",
-
         category=category,
-
         caption=caption,
-
         step=step,
-
         is_last_in_cycle=is_last,
-
+        provider="unsplash",
     )
 
 
+def image_data_to_response(
+    img_data: dict,
+    category: str,
+    caption: str,
+    session_id: str,
+    step: int,
+    is_last: bool,
+) -> ImageResponse:
+    return ImageResponse(
+        session_id=session_id,
+        image_url=img_data["image_url"],
+        photographer_name=img_data.get("photographer_name") or "Web Photography Archive",
+        photographer_profile_url=img_data.get("photographer_profile_url") or "",
+        unsplash_link=img_data.get("unsplash_link") or "",
+        category=category,
+        caption=caption,
+        step=step,
+        is_last_in_cycle=is_last,
+        provider=img_data.get("provider", "tinyfish"),
+        fallback_image_url=img_data.get("fallback_image_url"),
+        fallback_photographer_name=img_data.get("fallback_photographer_name"),
+        fallback_photographer_url=img_data.get("fallback_photographer_url"),
+        fallback_unsplash_link=img_data.get("fallback_unsplash_link"),
+    )
+
 
 # --------------------------------------------------------------------------
-
 # 6. Routes
-
 # --------------------------------------------------------------------------
 
 @app.get("/api/health")
@@ -386,72 +383,53 @@ async def health():
     return {"status": "ok", "app": "Sereenify Reminiscence Engine"}
 
 
-
 @app.post("/api/session/start", response_model=ImageResponse)
-
 async def start_session(profile: PatientProfile):
-
     try:
-
         session_id = str(uuid.uuid4())
-
         category = CATEGORY_ORDER[0]
-
         cursor = {"hobby_idx": 0, "place_idx": 0}
 
-        try:
-            from langchain_embed import generate_query_chain
-            profile_str = f"Hobbies: {profile.hobbies}\nPast activities: {profile.past_activities}\nFavorite places: {profile.favorite_places}\nLife milestones: {profile.life_milestones}"
-            query = await generate_query_chain.ainvoke({"profile": profile_str})
-            query = query.strip()
-        except Exception as e:
-            logger.warning(f"LangChain LLM failed, falling back to heuristic: {e}")
-            query = build_query_for_category(profile, category, cursor)
+        # Build search query directly from patient's portfolio
+        query = build_query_for_category(profile, category, cursor)
+        if not query or not query.strip():
+            query = "cherished memory"
 
-        photo = await fetch_unsplash_photo(query)
+        from image_search import search_image_with_fallback
+        img_data = await search_image_with_fallback(
+            query=query,
+            category=category,
+            fetch_unsplash_fn=fetch_unsplash_photo,
+            trigger_download_fn=trigger_download_event,
+        )
 
-        await trigger_download_event(photo)
-
-
+        alt_desc = img_data.get("alt_description") or f"{query} photo"
 
         SESSIONS[session_id] = {
-
             "profile": profile,
-
             "cursor": cursor,
-
             "category_index": 0,   # index into CATEGORY_ORDER
-
             "step": 1,
-
             "current_query": query,
-
+            "current_portfolio_word": query,
+            "current_category": category,
+            "current_image_alt": alt_desc,
+            "current_image_data": img_data,
         }
 
-
-
         caption = build_caption(category, query)
-
-        return photo_to_response(photo, category, caption, session_id, step=1, is_last=False)
+        return image_data_to_response(img_data, category, caption, session_id, step=1, is_last=False)
 
     except HTTPException:
-
         raise
-
     except Exception as e:
-
         logger.error(f"Unexpected error in start_session: {e}")
-
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-
 @app.post("/api/session/{session_id}/next", response_model=ImageResponse)
-
 async def next_image(session_id: str, payload: DescriptionPayload):
-
     try:
-
         session = SESSIONS.get(session_id)
         if not session:
             logger.warning(f"Session {session_id} not found in memory (serverless cold start). Re-initializing session state.")
@@ -460,59 +438,84 @@ async def next_image(session_id: str, payload: DescriptionPayload):
                 "cursor": {"hobby_idx": 0, "place_idx": 0},
                 "category_index": 0,
                 "step": 1,
-                "current_query": "cherished memory"
+                "current_query": "cherished memory",
+                "current_portfolio_word": "cherished memory",
+                "current_category": "hobby",
             }
             SESSIONS[session_id] = session
 
-
-
-        # (Optional) store the patient's description for this step for later review/analysis.
-
         session.setdefault("descriptions", []).append(payload.description)
-
-
-
         session["category_index"] = (session["category_index"] + 1) % len(CATEGORY_ORDER)
-
         category = CATEGORY_ORDER[session["category_index"]]
-
         session["step"] += 1
 
+        # Build search query directly from patient's portfolio for next category
+        query = build_query_for_category(session["profile"], category, session["cursor"])
+        if not query or not query.strip():
+            query = "cherished memory"
 
-
-        try:
-            from langchain_embed import generate_query_chain
-            profile = session["profile"]
-            profile_str = f"Hobbies: {profile.hobbies}\nPast activities: {profile.past_activities}\nFavorite places: {profile.favorite_places}\nLife milestones: {profile.life_milestones}"
-            query = await generate_query_chain.ainvoke({"profile": profile_str})
-            query = query.strip()
-        except Exception as e:
-            logger.warning(f"LangChain LLM failed, falling back to heuristic: {e}")
-            query = build_query_for_category(session["profile"], category, session["cursor"])
-            
         session["current_query"] = query
-        
-        photo = await fetch_unsplash_photo(query)
+        session["current_portfolio_word"] = query
+        session["current_category"] = category
 
-        await trigger_download_event(photo)
+        from image_search import search_image_with_fallback
+        img_data = await search_image_with_fallback(
+            query=query,
+            category=category,
+            fetch_unsplash_fn=fetch_unsplash_photo,
+            trigger_download_fn=trigger_download_event,
+        )
 
-
+        alt_desc = img_data.get("alt_description") or f"{query} photo"
+        session["current_image_alt"] = alt_desc
+        session["current_image_data"] = img_data
 
         caption = build_caption(category, query)
-
-        # "is_last_in_cycle" is a soft signal the frontend can use to show
-
-        # "Finish Session" instead of "See another memory" after a full loop —
-
-        # adjust MAX_STEPS to whatever session length the frontend expects.
-
         MAX_STEPS = 8
-
         is_last = session["step"] >= MAX_STEPS
 
+        return image_data_to_response(img_data, category, caption, session_id, step=session["step"], is_last=is_last)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in next_image: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
-        return photo_to_response(photo, category, caption, session_id, step=session["step"], is_last=is_last)
+@app.post("/api/session/{session_id}/image-fallback", response_model=ImageResponse)
+async def fallback_image(session_id: str):
+    """Invoked when the browser fails to render a primary image (e.g. CORS/hotlink/network)."""
+    session = SESSIONS.get(session_id)
+    if not session:
+        session = {
+            "current_query": "cherished memory",
+            "current_category": "hobby",
+            "step": 1,
+        }
+        SESSIONS[session_id] = session
+
+    query = session.get("current_query", "cherished memory")
+    category = session.get("current_category", "hobby")
+    caption = build_caption(category, query)
+
+    logger.info("Client reported image render error for session %s, invoking automatic Unsplash fallback", session_id)
+    try:
+        photo = await fetch_unsplash_photo(query)
+        await trigger_download_event(photo)
+        alt_desc = photo.get("alt_description") or photo.get("description")
+        session["current_image_alt"] = alt_desc
+        return photo_to_response(photo, category, caption, session_id, step=session.get("step", 1), is_last=False)
+    except Exception as e:
+        logger.warning("Unsplash fallback failed (%s), returning archive placeholder", e)
+        archive_data = {
+            "image_url": "/assets/game-visual-match.jpg",
+            "photographer_name": "Serenify Memory Archive",
+            "photographer_profile_url": "",
+            "unsplash_link": "",
+            "provider": "archive",
+        }
+        return image_data_to_response(archive_data, category, caption, session_id, step=session.get("step", 1), is_last=False)
 
     except HTTPException:
 
@@ -648,90 +651,12 @@ async def analyze_audio_endpoint(
 
             os.remove(tmp_path)
 
-@app.post("/api/session/{session_id}/analyze")
 
-async def analyze_session_description(session_id: str, payload: DescriptionPayload):
+# --------------------------------------------------------------------------
+# 7. Scoring & Research Router
+# --------------------------------------------------------------------------
+from scoring import scoring_router
 
-    try:
+app.include_router(scoring_router)
 
-        session = SESSIONS.get(session_id)
-        current_query = session.get("current_query", "cherished memory") if session else "cherished memory"
-
-        
-
-        try:
-            from scoring import analyze_description
-            analysis_result = analyze_description(payload.description or "", current_query)
-        except Exception as score_err:
-            logger.warning(f"Embedding scoring failed ({score_err}), using resilient heuristic scoring.")
-            text = payload.description or ""
-            words = [w for w in text.split() if w.isalpha()]
-            total_words = len(words) or 1
-            analysis_result = {
-                "lexical_density_pct": 72.0,
-                "filler_word_pct": 0.0,
-                "weighted_relevance_pct": 80.0,
-                "final_score_pct": 76.8,
-                "lexical_details": {"keywords": words[:3] if words else ["memory"], "total_words": total_words, "keyword_count": min(len(words), 3), "lexical_density_pct": 72.0},
-                "filler_details": {"filler_count": 0, "total_words": total_words, "filler_word_pct": 0.0},
-                "relevance_details": {"weighted_relevance_pct": 80.0, "per_keyword": []}
-            }
-
-        
-
-        return {
-
-            "focusScore": 78,
-
-            "memoryScore": 65,
-
-            "sentimentScore": 82,
-
-            "wordCount": analysis_result["lexical_details"]["total_words"],
-
-            "keyThemes": analysis_result["lexical_details"]["keywords"][:3],
-
-            "encouragement": "Wonderful recall! You remembered so many vivid details.",
-
-            "flags": [],
-
-            "cognitiveMarkers": {
-
-                "temporalAwareness": True,
-
-                "spatialAwareness": True,
-
-                "emotionalEngagement": True,
-
-            },
-
-            
-
-            # The new real numbers
-
-            "lexical_density_pct": analysis_result["lexical_density_pct"],
-
-            "filler_word_pct": analysis_result["filler_word_pct"],
-
-            "weighted_relevance_pct": analysis_result["weighted_relevance_pct"],
-
-            "final_score_pct": analysis_result["final_score_pct"],
-
-            "lexical_details": analysis_result["lexical_details"],
-
-            "filler_details": analysis_result["filler_details"],
-
-            "relevance_details": analysis_result["relevance_details"]
-
-        }
-
-    except HTTPException:
-
-        raise
-
-    except Exception as e:
-
-        logger.error(f"Unexpected error in analyze_session_description: {e}")
-
-        raise HTTPException(status_code=500, detail="Internal server error")
 

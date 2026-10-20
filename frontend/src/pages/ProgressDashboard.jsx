@@ -74,7 +74,7 @@ export function ProgressDashboard() {
                 { label: 'Streak', value: monthly.streak, icon: <Flame size={24} />, color: '#738A7A', bg: '#F0F4F1', unit: ' days' },
                 { label: 'Focus', value: `+${monthly.focusChange}`, icon: <TrendingUp size={24} />, color: '#2C4233', bg: '#E6EBE7', unit: '%' },
                 { label: 'Memory', value: `+${monthly.memoryChange}`, icon: <Star size={24} />, color: '#B3925B', bg: '#FDFBF7', unit: '%' },
-              ].map((stat, _i) => (
+              ].map((stat, i) => (
                 <Card key={stat.label} className="p-8 flex items-center gap-6 border-none shadow-[0_8px_32px_rgba(26,28,27,0.03)] bg-white"
                   style={{ animationDelay: `${i * 0.1}s` }}>
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-[#EAE8E3]" style={{ background: stat.bg, color: stat.color }}>

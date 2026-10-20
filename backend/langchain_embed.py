@@ -28,5 +28,7 @@ not include names, ages, diagnoses, questions, or explanations. Return only
     ("human", "Patient profile:\n{profile}"),
 ])
 
-model = ChatGroq(model="gpt-oss-120b", temperature=0.7, api_key=GROQ_API_KEY)
+from scoring.config import GROQ_MODEL
+
+model = ChatGroq(model=GROQ_MODEL, temperature=0.3, max_tokens=25, api_key=GROQ_API_KEY)
 generate_query_chain = unsplash_query_prompt | model | StrOutputParser()

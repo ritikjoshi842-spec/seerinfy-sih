@@ -53,6 +53,8 @@ backend/.env.*
 !.env.example
 !frontend/.env.example
 !frontend/.env.development.example
+!frontend/.env.development
+!frontend/.env.production
 !backend/.env.example
 
 # Local audio recordings
@@ -65,6 +67,7 @@ WhatsApp Audio*
 
 # Local pipeline outputs
 backend/result*.json
+backend/data/research_brief.json
 *.safetensors
 *.bin
 *.onnx
